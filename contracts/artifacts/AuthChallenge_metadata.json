@@ -1,0 +1,161 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "ECDSAInvalidSignature",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "length",
+						"type": "uint256"
+					}
+				],
+				"name": "ECDSAInvalidSignatureLength",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "s",
+						"type": "bytes32"
+					}
+				],
+				"name": "ECDSAInvalidSignatureS",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "Registered",
+				"type": "event"
+			},
+			{
+				"inputs": [],
+				"name": "getNonce",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "nonces",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "nonce",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "signature",
+						"type": "bytes"
+					}
+				],
+				"name": "register",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"errors": {
+				"ECDSAInvalidSignature()": [
+					{
+						"details": "The signature derives the `address(0)`."
+					}
+				],
+				"ECDSAInvalidSignatureLength(uint256)": [
+					{
+						"details": "The signature has an invalid length."
+					}
+				],
+				"ECDSAInvalidSignatureS(bytes32)": [
+					{
+						"details": "The signature has an S value that is in the upper half order."
+					}
+				]
+			},
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/AuthChallenge.sol": "AuthChallenge"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/utils/cryptography/ECDSA.sol": {
+			"keccak256": "0x69f54c02b7d81d505910ec198c11ed4c6a728418a868b906b4a0cf29946fda84",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8e25e4bdb7ae1f21d23bfee996e22736fc0ab44cfabedac82a757b1edc5623b9",
+				"dweb:/ipfs/QmQdWQvB6JCP9ZMbzi8EvQ1PTETqkcTWrbcVurS7DKpa5n"
+			]
+		},
+		"contracts/AuthChallenge.sol": {
+			"keccak256": "0xb9628cb69cf7d27de5cc7930e7e53513d47c75cee6f68193e2e19e18d2da4f62",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://5af1a11b3981029338bfc639e0febe2d0ddf4f5c9d443d4e004301fbec7c4f85",
+				"dweb:/ipfs/QmcjpJyk2rJFicSEr8LVh6KgQNBFwkCQsvtCNkJFS36waV"
+			]
+		}
+	},
+	"version": 1
+}
