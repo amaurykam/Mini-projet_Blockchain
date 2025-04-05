@@ -4,6 +4,7 @@ import './App.css';
 import Election from './Election';
 import { Box, Tab, Tabs } from '@mui/material';
 import Web3 from "web3";
+import Admin from './Admin';
 
 
 const year = new Date().getFullYear();
@@ -11,6 +12,7 @@ const year = new Date().getFullYear();
 function App() {
   const [tabValue, setTabValue] = useState(0);
   const [electeur, setElecteur] = useState('Vincent Angoulvant');
+  const [isAdmin, setIsAdmin] = useState(true);
   const [account, setAccount] = useState("");
   const [contract, setContract] = useState(null);
   const [candidates, setCandidates] = useState([]);
@@ -81,6 +83,7 @@ function App() {
               <Tabs sx={{ width: '100%' }} value={tabValue} onChange={handleChange} aria-label="basic tabs example">
                 <Tab label="Voter" {...a11yProps(0)} />
                 <Tab color='error' label="Statistiques" {...a11yProps(1)} />
+                {isAdmin && <Tab label="Admin" {...a11yProps(2)} />}
               </Tabs>
             </Box>
           </Box>
@@ -89,10 +92,13 @@ function App() {
       <div className='app-content'>
         {electeur &&
           <div className='electeur'>
-            {`Electeur : ${electeur}`}
+            {`Compte connecté : ${electeur}`}
           </div>
         }
-        <Election year={year} tab={tabValue} />
+        {tabValue !== 2 ?
+          <Election year={year} tab={tabValue} />
+          :
+          <Admin />}
       </div>
     </div>
   );

@@ -76,10 +76,6 @@ export default function Election(props) {
         setChecked(null);
     }
 
-    useEffect(() => {
-        console.log(tours)
-        console.log(currentTour)
-    }, [tours, currentTour]);
 
     return (
         <div className='election-container'>

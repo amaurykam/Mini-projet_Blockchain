@@ -59,6 +59,30 @@
   background-color: #3dcfff !important;
 }
 
+.css-16wblaj-MuiInputBase-input-MuiOutlinedInput-input {
+  color: white !important;
+
+  &::placeholder {
+    color: white !important;
+  }
+}
+
+.css-19qnlrw-MuiFormLabel-root-MuiInputLabel-root {
+  color: #949494 !important;
+}
+
+.css-1ll44ll-MuiOutlinedInput-notchedOutline {
+  border-color: #cccccc !important;
+
+  &:hover {
+    border-color: #cccccc !important;
+  }
+}
+
+.css-113d811-MuiFormLabel-root-MuiInputLabel-root {
+  color: white !important;
+}
+
 .electeur {
   align-self: stretch;
   text-align: left;
@@ -297,5 +321,40 @@
     gap: 1rem;
     flex-grow: 1;
     flex-direction: row;
+  }
+}
+
+.admin-container {
+  flex-grow: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  color: white !important;
+  font-family: Rockwell, Courier Bold, Courier, Georgia, Times, Times New Roman, serif;
+  gap: 2rem;
+
+  .mini-form {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+    border: 1px solid #616161;
+    background-color: #080838;
+    border-radius: 10px;
+    gap: 1rem;
+
+    .header {
+      text-align: left;
+      font-size: 20px;
+    }
+
+    .button {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+    }
   }
 }
