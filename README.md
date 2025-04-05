@@ -1,2 +1,2 @@
-# Mini-projet_Blockchain
-Mini projet de A2MSI en Blockchain
+Mini-Projet de Blockchain A2MSI
+Election Présidentielle
