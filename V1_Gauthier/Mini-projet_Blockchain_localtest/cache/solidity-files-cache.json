@@ -1,0 +1,302 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\gauth\\Documents\\A2\\Cours\\Blockchain\\Projet\\Mini-projet_Blockchain_localtest\\contracts\\Lock.sol": {
+      "lastModificationDate": 1743881826840,
+      "contentHash": "7eee587c347fe6b1de50c96688cb9477",
+      "sourceName": "contracts/Lock.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.28"
+      ],
+      "artifacts": [
+        "Lock"
+      ]
+    },
+    "C:\\Users\\gauth\\Documents\\A2\\Cours\\Blockchain\\Projet\\Mini-projet_Blockchain_localtest\\contracts\\PresidentialElection.sol": {
+      "lastModificationDate": 1743977399137,
+      "contentHash": "57689aec60cdd139d614ec8f543a4995",
+      "sourceName": "contracts/PresidentialElection.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./core/ElectionCore.sol",
+        "./utils/ElectionTypes.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "PresidentialElection"
+      ]
+    },
+    "C:\\Users\\gauth\\Documents\\A2\\Cours\\Blockchain\\Projet\\Mini-projet_Blockchain_localtest\\contracts\\core\\ElectionCore.sol": {
+      "lastModificationDate": 1743970518401,
+      "contentHash": "21ffffd51f3d1fcd84d961185598b488",
+      "sourceName": "contracts/core/ElectionCore.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../modules/VoterWhitelist.sol",
+        "../modules/CandidatesManager.sol",
+        "../modules/ElectionLogic.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "ElectionCore"
+      ]
+    },
+    "C:\\Users\\gauth\\Documents\\A2\\Cours\\Blockchain\\Projet\\Mini-projet_Blockchain_localtest\\contracts\\modules\\VoterWhitelist.sol": {
+      "lastModificationDate": 1743960653659,
+      "contentHash": "e47cbaa1e74bc7e225b46aca52c97534",
+      "sourceName": "contracts/modules/VoterWhitelist.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "VoterWhitelist"
+      ]
+    },
+    "C:\\Users\\gauth\\Documents\\A2\\Cours\\Blockchain\\Projet\\Mini-projet_Blockchain_localtest\\contracts\\modules\\CandidatesManager.sol": {
+      "lastModificationDate": 1743976345154,
+      "contentHash": "80e97fa7a9e14b660072ac506cea61b8",
+      "sourceName": "contracts/modules/CandidatesManager.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "CandidatesManager"
+      ]
+    },
+    "C:\\Users\\gauth\\Documents\\A2\\Cours\\Blockchain\\Projet\\Mini-projet_Blockchain_localtest\\contracts\\modules\\ElectionLogic.sol": {
+      "lastModificationDate": 1743977466457,
+      "contentHash": "0fb14da67c2c355794e12a9148d4ebb2",
+      "sourceName": "contracts/modules/ElectionLogic.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/ElectionTypes.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "ElectionLogic"
+      ]
+    },
+    "C:\\Users\\gauth\\Documents\\A2\\Cours\\Blockchain\\Projet\\Mini-projet_Blockchain_localtest\\contracts\\utils\\ElectionTypes.sol": {
+      "lastModificationDate": 1743962495992,
+      "contentHash": "4dafd71491f314875f008dd9ac6aa793",
+      "sourceName": "contracts/utils/ElectionTypes.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "ElectionTypes"
+      ]
+    },
+    "C:\\Users\\gauth\\Documents\\A2\\Cours\\Blockchain\\Projet\\Mini-projet_Blockchain_localtest\\contracts\\modules\\AdminManager.sol": {
+      "lastModificationDate": 1743957417139,
+      "contentHash": "39679cb9805822ebc5d894634cb75329",
+      "sourceName": "contracts/modules/AdminManager.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "AdminManager"
+      ]
+    }
+  }
+}

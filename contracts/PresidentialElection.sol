@@ -15,18 +15,19 @@ import "./VoterWhitelist.sol";
  * - The list of candidate IDs.
  *
  * Additionally, the candidate "Vote blanc" (id = 0) is created by default and
- * fera partie de tous les tours, quel que soit le résultat.
+ * will be part of all rounds, regardless of the result.
  *
  * Policy:
  * - First round:
- *    • If a candidate obtains >50% of the votes, the election is concluded and that candidate is elected.
- *    • Otherwise, the candidates with the highest vote and those tied for second highest (leaving top two positions) advance to the second round.
+ *    • If a candidate (excluding Vote blanc) obtains >50% of the votes, the election is concluded and that candidate is elected.
+ *    • Otherwise, the candidates (excluding Vote blanc) with the highest vote and those tied for second highest
+ *      advance to the second round.
  * - Second round:
- *    • The candidate with the highest votes wins.
- *    • In case of a tie for first place, the tied candidates advance to the third round.
+ *    • The candidate with the highest votes (excluding Vote blanc) wins.
+ *    • In case of a tie for first place, the tied candidates (excluding Vote blanc) advance to the third round.
  * - Third round:
- *    • If a candidate obtains a clear win, he is elected.
- *    • In case of a tie, the candidate with the highest total votes over rounds 1-3 is declared president.
+ *    • If a candidate (excluding Vote blanc) obtains a clear win, he is elected.
+ *    • In case of a tie, the candidate with the highest total votes over rounds 1-3 (excluding Vote blanc) is declared president.
  */
 contract PresidentialElection is AdminManager, VoterWhitelist {
     using ElectionTypes for ElectionTypes.Election;
@@ -36,14 +37,22 @@ contract PresidentialElection is AdminManager, VoterWhitelist {
     mapping(uint256 => ElectionTypes.Election) public elections;
 
     // Mapping: electionId => round number => Round details.
-    mapping(uint256 => mapping(uint8 => ElectionTypes.Round))
-        public electionRounds;
+    mapping(uint256 => mapping(uint8 => ElectionTypes.Round)) public electionRounds;
     // Mapping: electionId => round number => candidateId => vote count.
-    mapping(uint256 => mapping(uint8 => mapping(uint256 => uint256)))
-        public roundCandidateVotes;
+    mapping(uint256 => mapping(uint8 => mapping(uint256 => uint256))) public roundCandidateVotes;
     // Mapping: electionId => round number => voter address => bool.
-    mapping(uint256 => mapping(uint8 => mapping(address => bool)))
-        public roundHasVoted;
+    mapping(uint256 => mapping(uint8 => mapping(address => bool))) public roundHasVoted;
+
+    // Mapping to keep track of the list of addresses that have voted per round.
+    mapping(uint256 => mapping(uint8 => address[])) public votersByRound;
+
+    // Structure to store the details of a vote.
+    struct Vote {
+        uint256 candidateId;
+        uint256 timestamp;
+    }
+    // Mapping to store the complete vote of each voter per round.
+    mapping(uint256 => mapping(uint8 => mapping(address => Vote))) public votes;
 
     event ElectionCreated(
         uint256 indexed electionId,
@@ -56,9 +65,10 @@ contract PresidentialElection is AdminManager, VoterWhitelist {
         uint256 indexed electionId,
         uint8 round,
         uint256 indexed candidateId,
-        address voter
+        address voter,
+        uint256 timestamp
     );
-    // finished = true => election terminée et winnerCandidateId contient le vainqueur.
+    // finished = true => election finished and winnerCandidateId contains the winner.
     event RoundFinalized(
         uint256 indexed electionId,
         uint8 round,
@@ -101,7 +111,7 @@ contract PresidentialElection is AdminManager, VoterWhitelist {
         e.currentRound = 1;
         e.winnerCandidateId = 0;
 
-        // Création du tableau des candidats incluant "Vote blanc" (id = 0) par défaut.
+        // Create the candidate array including "Vote blanc" (id = 0) by default.
         uint256 totalCandidates = _candidateIds.length + 1;
         e.candidateIds = new uint256[](totalCandidates);
         e.candidateIds[0] = 0; // Vote blanc
@@ -109,7 +119,7 @@ contract PresidentialElection is AdminManager, VoterWhitelist {
             e.candidateIds[i + 1] = _candidateIds[i];
         }
 
-        // Initialisation du premier tour.
+        // Initialize the first round.
         ElectionTypes.Round storage r = electionRounds[electionsCount][1];
         r.roundNumber = 1;
         r.startDate = _firstRoundStartDate;
@@ -129,11 +139,12 @@ contract PresidentialElection is AdminManager, VoterWhitelist {
 
     /**
      * @dev Allows a voter to cast a vote during the active round.
+     * The vote is timestamped and linked to the voter's wallet address.
      * @param _electionId Election identifier.
      * @param _candidateId Candidate identifier.
      */
     function castVote(uint256 _electionId, uint256 _candidateId) external {
-        // Vérifier que l'électeur est inscrit dans la whitelist.
+        // Verify that the voter is registered.
         require(voters[msg.sender].isRegistered, "Not registered as voter");
 
         ElectionTypes.Election storage e = elections[_electionId];
@@ -149,7 +160,7 @@ contract PresidentialElection is AdminManager, VoterWhitelist {
             "Already voted in this round"
         );
 
-        // Vérifier que le candidat est présent dans la liste des candidats de l'élection.
+        // Verify that the candidate exists in the election candidate list.
         bool candidateFound = false;
         for (uint256 i = 0; i < e.candidateIds.length; i++) {
             if (e.candidateIds[i] == _candidateId) {
@@ -159,17 +170,23 @@ contract PresidentialElection is AdminManager, VoterWhitelist {
         }
         require(candidateFound, "Candidate not in election");
 
-        // Enregistrer le vote.
+        // Record the vote.
         roundHasVoted[_electionId][roundNum][msg.sender] = true;
         roundCandidateVotes[_electionId][roundNum][_candidateId] += 1;
         r.totalVotes += 1;
 
-        emit VoteCast(_electionId, roundNum, _candidateId, msg.sender);
+        // Store the vote with timestamp.
+        votes[_electionId][roundNum][msg.sender] = Vote(_candidateId, block.timestamp);
+        // Add the voter's address to the list of voters for this round.
+        votersByRound[_electionId][roundNum].push(msg.sender);
+
+        emit VoteCast(_electionId, roundNum, _candidateId, msg.sender, block.timestamp);
     }
 
     /**
      * @dev Finalizes the current round according to the defined policy.
      * Only an administrator can call this function.
+     * The candidate "Vote blanc" (id = 0) is not considered in the deduction of the winner.
      * @param _electionId Election identifier.
      */
     function finalizeRound(uint256 _electionId) external onlyAdmin {
@@ -182,140 +199,107 @@ contract PresidentialElection is AdminManager, VoterWhitelist {
         require(r.totalVotes > 0, "No votes cast");
 
         if (roundNum == 1) {
-            // --- PREMIER TOUR ---
-            // Vérification de la majorité absolue (>50%).
+            // --- FIRST ROUND ---
             bool majorityAchieved = false;
             uint256 winningCandidateId = 0;
             for (uint256 i = 0; i < e.candidateIds.length; i++) {
                 uint256 candidateId = e.candidateIds[i];
-                uint256 votes = roundCandidateVotes[_electionId][roundNum][
-                    candidateId
-                ];
-                if (votes * 100 > r.totalVotes * 50) {
+                // Skip Vote blanc.
+                if (candidateId == 0) continue;
+                uint256 votesCount = roundCandidateVotes[_electionId][roundNum][candidateId];
+                if (votesCount * 100 > r.totalVotes * 50) {
                     majorityAchieved = true;
                     winningCandidateId = candidateId;
                     break;
                 }
             }
             if (majorityAchieved) {
-                // Élection conclue.
                 e.isActive = false;
                 e.winnerCandidateId = winningCandidateId;
                 r.finalized = true;
                 r.winnerCandidateId = winningCandidateId;
-                emit RoundFinalized(
-                    _electionId,
-                    roundNum,
-                    true,
-                    winningCandidateId
-                );
+                emit RoundFinalized(_electionId, roundNum, true, winningCandidateId);
                 return;
             } else {
-                // Aucun candidat n'a obtenu la majorité absolue.
-                // Sélection des candidats pour le second tour (basé sur le maximum et le second maximum de votes).
+                // No candidate achieved >50%: prepare candidates for round two.
                 uint256 maxVotes = 0;
                 uint256 secondMaxVotes = 0;
+                // Compute max and second max ignoring Vote blanc.
                 for (uint256 i = 0; i < e.candidateIds.length; i++) {
                     uint256 candidateId = e.candidateIds[i];
-                    uint256 votes = roundCandidateVotes[_electionId][roundNum][
-                        candidateId
-                    ];
-                    if (votes > maxVotes) {
+                    if (candidateId == 0) continue;
+                    uint256 votesCount = roundCandidateVotes[_electionId][roundNum][candidateId];
+                    if (votesCount > maxVotes) {
                         secondMaxVotes = maxVotes;
-                        maxVotes = votes;
-                    } else if (votes > secondMaxVotes) {
-                        secondMaxVotes = votes;
+                        maxVotes = votesCount;
+                    } else if (votesCount > secondMaxVotes) {
+                        secondMaxVotes = votesCount;
                     }
                 }
-
-                // Comptage des candidats éligibles selon la règle (max ou second max)
                 uint256 countEligible = 0;
-                bool voteBlancIncluded = false;
+                // Count eligible candidates, ignoring Vote blanc.
                 for (uint256 i = 0; i < e.candidateIds.length; i++) {
                     uint256 candidateId = e.candidateIds[i];
-                    uint256 votes = roundCandidateVotes[_electionId][roundNum][
-                        candidateId
-                    ];
-                    if (votes == maxVotes || votes == secondMaxVotes) {
+                    if (candidateId == 0) continue;
+                    uint256 votesCount = roundCandidateVotes[_electionId][roundNum][candidateId];
+                    if (votesCount == maxVotes || votesCount == secondMaxVotes) {
                         countEligible++;
-                        if (candidateId == 0) {
-                            voteBlancIncluded = true;
-                        }
                     }
                 }
-                // Forcer l'inclusion de "Vote blanc" (id = 0)
-                if (!voteBlancIncluded) {
-                    countEligible++;
-                }
-
-                // Constitution du nouveau tableau de candidats pour le tour suivant.
                 uint256[] memory newCandidates = new uint256[](countEligible);
                 uint256 index = 0;
                 for (uint256 i = 0; i < e.candidateIds.length; i++) {
                     uint256 candidateId = e.candidateIds[i];
-                    uint256 votes = roundCandidateVotes[_electionId][roundNum][
-                        candidateId
-                    ];
-                    if (votes == maxVotes || votes == secondMaxVotes) {
+                    if (candidateId == 0) continue;
+                    uint256 votesCount = roundCandidateVotes[_electionId][roundNum][candidateId];
+                    if (votesCount == maxVotes || votesCount == secondMaxVotes) {
                         newCandidates[index] = candidateId;
                         index++;
                     }
                 }
-                // Si "Vote blanc" n'était pas sélectionné par les votes, l'ajouter manuellement.
-                if (!voteBlancIncluded) {
-                    newCandidates[index] = 0;
-                }
-                // Mettre à jour la liste des candidats pour le prochain tour.
                 e.candidateIds = newCandidates;
             }
         } else if (roundNum == 2) {
-            // --- SECOND TOUR ---
+            // --- SECOND ROUND ---
             uint256 maxVotes = 0;
             uint256 winningCandidateId = 0;
             uint256 countMax = 0;
             for (uint256 i = 0; i < e.candidateIds.length; i++) {
                 uint256 candidateId = e.candidateIds[i];
-                uint256 votes = roundCandidateVotes[_electionId][roundNum][
-                    candidateId
-                ];
-                if (votes > maxVotes) {
-                    maxVotes = votes;
+                // Skip Vote blanc.
+                if (candidateId == 0) continue;
+                uint256 votesCount = roundCandidateVotes[_electionId][roundNum][candidateId];
+                if (votesCount > maxVotes) {
+                    maxVotes = votesCount;
                     winningCandidateId = candidateId;
                     countMax = 1;
-                } else if (votes == maxVotes) {
+                } else if (votesCount == maxVotes) {
                     countMax++;
                 }
             }
             if (countMax == 1) {
-                // Gagnant clair.
                 e.isActive = false;
                 e.winnerCandidateId = winningCandidateId;
                 r.finalized = true;
                 r.winnerCandidateId = winningCandidateId;
-                emit RoundFinalized(
-                    _electionId,
-                    roundNum,
-                    true,
-                    winningCandidateId
-                );
+                emit RoundFinalized(_electionId, roundNum, true, winningCandidateId);
                 return;
             }
-            // En cas d'égalité, la liste des candidats reste inchangée, ce qui inclut déjà "Vote blanc".
         } else if (roundNum == 3) {
-            // --- TROISIÈME TOUR ---
+            // --- THIRD ROUND ---
             uint256 maxVotes = 0;
             uint256 winningCandidateId = 0;
             uint256 countMax = 0;
             for (uint256 i = 0; i < e.candidateIds.length; i++) {
                 uint256 candidateId = e.candidateIds[i];
-                uint256 votes = roundCandidateVotes[_electionId][roundNum][
-                    candidateId
-                ];
-                if (votes > maxVotes) {
-                    maxVotes = votes;
+                // Skip Vote blanc.
+                if (candidateId == 0) continue;
+                uint256 votesCount = roundCandidateVotes[_electionId][roundNum][candidateId];
+                if (votesCount > maxVotes) {
+                    maxVotes = votesCount;
                     winningCandidateId = candidateId;
                     countMax = 1;
-                } else if (votes == maxVotes) {
+                } else if (votesCount == maxVotes) {
                     countMax++;
                 }
             }
@@ -324,26 +308,20 @@ contract PresidentialElection is AdminManager, VoterWhitelist {
                 e.winnerCandidateId = winningCandidateId;
                 r.finalized = true;
                 r.winnerCandidateId = winningCandidateId;
-                emit RoundFinalized(
-                    _electionId,
-                    roundNum,
-                    true,
-                    winningCandidateId
-                );
+                emit RoundFinalized(_electionId, roundNum, true, winningCandidateId);
                 return;
             } else {
-                // En cas d'égalité dans le troisième tour, comparaison des votes cumulatifs sur les trois tours.
                 uint256 maxTotal = 0;
                 uint256 finalWinner = 0;
                 for (uint256 i = 0; i < e.candidateIds.length; i++) {
                     uint256 candidateId = e.candidateIds[i];
-                    uint256 total = roundCandidateVotes[_electionId][1][
-                        candidateId
-                    ] +
+                    // Skip Vote blanc.
+                    if (candidateId == 0) continue;
+                    uint256 totalVotesCandidate = roundCandidateVotes[_electionId][1][candidateId] +
                         roundCandidateVotes[_electionId][2][candidateId] +
                         roundCandidateVotes[_electionId][3][candidateId];
-                    if (total > maxTotal) {
-                        maxTotal = total;
+                    if (totalVotesCandidate > maxTotal) {
+                        maxTotal = totalVotesCandidate;
                         finalWinner = candidateId;
                     }
                 }
@@ -356,16 +334,14 @@ contract PresidentialElection is AdminManager, VoterWhitelist {
             }
         }
 
-        // Finalisation du tour courant et préparation du suivant.
+        // Finalize current round and prepare for the next.
         r.finalized = true;
         emit RoundFinalized(_electionId, roundNum, false, 0);
 
         e.currentRound++;
-        ElectionTypes.Round storage newRound = electionRounds[_electionId][
-            e.currentRound
-        ];
+        ElectionTypes.Round storage newRound = electionRounds[_electionId][e.currentRound];
         newRound.roundNumber = e.currentRound;
-        newRound.startDate = r.endDate; // Le nouveau tour démarre immédiatement après la fin du précédent.
+        newRound.startDate = r.endDate;
         newRound.endDate = newRound.startDate + e.roundDuration;
         newRound.finalized = false;
         newRound.totalVotes = 0;

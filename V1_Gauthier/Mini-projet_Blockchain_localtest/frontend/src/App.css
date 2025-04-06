@@ -1,0 +1,315 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #191938;
+
+}
+
+.App-header {
+  background-color: #080831;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  font-family: Rockwell, Courier Bold, Courier, Georgia, Times, Times New Roman, serif;
+  padding-top: 3rem;
+  padding-bottom: 1rem;
+  gap: 2rem;
+  color: white;
+  box-shadow: 0px 0px 5px 0px #000000;
+  z-index: 1;
+  border-radius: 0 0 5px 5px;
+
+  .app-tabs {
+    display: flex;
+    flex-grow: 1rem;
+    align-self: stretch;
+    padding-left: 1rem;
+  }
+}
+
+.app-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+.MuiButtonBase-root.MuiTab-root {
+  color: white;
+}
+
+.MuiButton-containedPrimary {
+  background-color: #020872 !important;
+}
+
+.css-1umw9bq-MuiSvgIcon-root {
+  color: white;
+}
+
+.css-193sa3w-MuiLinearProgress-root {
+  background-color: #32325a !important;
+}
+
+.css-l16vtb-MuiLinearProgress-bar1 {
+  background-color: #3dcfff !important;
+}
+
+.electeur {
+  align-self: stretch;
+  text-align: left;
+  padding-left: 2rem;
+  padding-top: 1rem;
+  font-size: large;
+  font-family: Rockwell, Courier Bold, Courier, Georgia, Times, Times New Roman, serif;
+  color: white;
+}
+
+.election-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  align-self: stretch;
+
+
+  .election-vote {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    align-self: stretch;
+
+    .election-liste {
+      display: flex;
+      /* flex-direction: column; */
+      flex-grow: 1;
+      align-self: stretch;
+      gap: 2rem;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      align-content: flex-start;
+      justify-content: flex-start;
+      padding: 1rem;
+
+      >* {
+        /* border: 1px solid #6ebcd0; */
+        background-color: transparent;
+        flex: 1 1 calc(25% - 2rem);
+        max-width: calc(25% - 1rem);
+        box-sizing: border-box;
+        /* Ensures cards are the same size */
+        max-width: calc(25% - 1rem);
+        min-width: calc(100% - 1rem);
+
+        /* Allows a minimum of 1 card per line on smaller screens */
+        @media (min-width: 600px) {
+          min-width: calc(50% - 1rem);
+
+          max-width: unset;
+          /* Allows 2 cards per line on medium screens */
+        }
+
+        @media (min-width: 900px) {
+          min-width: calc(25% - 1.5rem);
+          max-width: calc(25% - 1.5rem);
+
+          /* Allows 4 cards per line on larger screens */
+        }
+
+        @media (max-width: 600px) {
+          min-width: 100%;
+          /* Allows 5 cards per line on larger screens */
+
+        }
+      }
+
+      .candidat-container {
+        display: flex;
+        flex-direction: row;
+        padding: 1rem;
+        gap: 1rem;
+        cursor: pointer;
+        color: white;
+        background-color: #34344c;
+
+        .candidat-infos {
+          flex-grow: 1;
+        }
+
+      }
+    }
+
+    .election-footer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      gap: 2rem;
+    }
+  }
+
+  .election-statistics {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+
+    .tour-container {
+      border-radius: 10px;
+      background-color: #34344c;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      transition-duration: 500ms;
+      /* overflow: hidden; */
+
+      /* height: 15rem; */
+      /* transform: scaleY(1); */
+
+
+      .tour-header {
+        font-size: 800;
+        color: white;
+        font-family: Rockwell, Courier Bold, Courier, Georgia, Times, Times New Roman, serif;
+        display: flex;
+        justify-content: flex-start;
+        gap: .5rem;
+      }
+
+      .tour-candidates,
+      .tour-winers {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        height: 0;
+        transition: height 500ms;
+        opacity: 0;
+
+        &.show {
+          height: fit-content;
+          opacity: 1;
+        }
+
+        /* gap: 1rem; */
+
+        .tour-candidate-container {
+          display: flex;
+          flex-direction: column;
+          gap: .5rem;
+          margin-bottom: .5rem;
+        }
+
+        .tour-candidate {
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          padding: .5rem;
+          margin: .5rem;
+          gap: 1rem;
+          cursor: pointer;
+          color: white;
+          background-color: #3b3b71;
+          border: 2px solid #45454b;
+          border-radius: 10px;
+
+          &.detailed {
+            padding: .5rem;
+            flex-direction: row;
+            white-space: nowrap;
+            align-items: center;
+
+            .tour-candidate-name {
+              width: 10rem;
+              white-space: wrap;
+              text-align: left;
+            }
+
+            .number {
+              width: 3rem;
+              text-align: center;
+            }
+          }
+
+          .tour-candidate-name {
+            width: fit-content;
+          }
+
+          .tour-candidate-votes {
+            /* width: fit-content; */
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 1rem;
+
+            .label,
+            .number {
+              /* width: fit-content; */
+              white-space: nowrap;
+              /* max-width: 3rem; */
+            }
+
+            .number {
+              width: 3rem;
+              text-align: center;
+            }
+          }
+        }
+      }
+    }
+  }
+
+}
+
+.votes-finished {
+  flex-grow: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  .votes-finished-title {
+    position: relative;
+    display: flex;
+    font-size: 1.25rem;
+    font-family: Rockwell, Courier Bold, Courier, Georgia, Times, Times New Roman, serif;
+    color: white;
+    padding: 3rem;
+    border-radius: 10px;
+    background-color: #34344c;
+    margin-top: 5rem;
+  }
+}
+
+.dialog-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-grow: 1;
+    flex-direction: row;
+  }
+}
+
+/* Forcer les tabs à rester visibles */
+.MuiTab-root {
+  color: #ccc !important;
+  font-weight: bold;
+}
+
+.Mui-selected {
+  color: #3dcfff !important;
+}
+
+.MuiTabs-indicator {
+  background-color: #3dcfff !important;
+}

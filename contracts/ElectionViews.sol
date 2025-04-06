@@ -98,4 +98,35 @@ contract ElectionViews is PresidentialElection {
     ) external view returns (uint256) {
         return electionRounds[_electionId][_round].totalVotes;
     }
+
+    /**
+     * @dev View function to obtain the complete list of votes for a round.
+     * Returns three parallel arrays:
+     * - The addresses of the voters.
+     * - The candidate IDs for which they voted.
+     * - The corresponding timestamps.
+     * @param _electionId Election identifier.
+     * @param _round Round number.
+     */
+    function getVotesForRound(uint256 _electionId, uint8 _round)
+        external
+        view
+        returns (
+            address[] memory voterAddresses,
+            uint256[] memory candidateIds,
+            uint256[] memory timestamps
+        )
+    {
+        voterAddresses = votersByRound[_electionId][_round];
+        uint256 count = voterAddresses.length;
+        candidateIds = new uint256[](count);
+        timestamps = new uint256[](count);
+
+        for (uint256 i = 0; i < count; i++) {
+            address voter = voterAddresses[i];
+            Vote storage v = votes[_electionId][_round][voter];
+            candidateIds[i] = v.candidateId;
+            timestamps[i] = v.timestamp;
+        }
+    }
 }
