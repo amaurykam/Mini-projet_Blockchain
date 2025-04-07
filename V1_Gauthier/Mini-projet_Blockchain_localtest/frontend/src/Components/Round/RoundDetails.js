@@ -33,7 +33,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
     }
 
     if (contract) fetchRoundData();
-  }, [contract, electionId, round.roundNumber]);
+  }, [contract, electionId, round.roundNumber, round]);
 
   // Charger les candidats
   useEffect(() => {
@@ -117,7 +117,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
     if (contract && isRoundOver && !results) {
       fetchResults();
     }
-  }, [contract, electionId, round, isRoundOver]);
+  }, [contract, electionId, round, isRoundOver, results]);
 
   // Voter pour un candidat
   const handleVote = async (candidateId) => {

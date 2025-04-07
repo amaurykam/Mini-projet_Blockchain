@@ -7,10 +7,14 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
+import DatePicker from "./DatePicker";
+import dayjs from 'dayjs';
+
+
 
 function ElectionCreator({ contract }) {
-  const [electionStartDate, setElectionStartDate] = useState("");
-  const [firstRoundStartDate, setFirstRoundStartDate] = useState("");
+  const [electionStartDate, setElectionStartDate] = useState(dayjs(null));
+  const [firstRoundStartDate, setFirstRoundStartDate] = useState(dayjs(null));
   const [allCandidates, setAllCandidates] = useState([]);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
 
@@ -75,18 +79,20 @@ function ElectionCreator({ contract }) {
     <Box sx={{ mt: 4 }}>
       <Typography variant="h6">Créer une nouvelle élection</Typography>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-        <TextField
+        {/* <TextField
           label="Date de début de l'élection"
           type="datetime-local"
           InputLabelProps={{ shrink: true }}
           onChange={(e) => setElectionStartDate(e.target.value)}
-        />
-        <TextField
+        /> */}
+        <DatePicker label={"Date de début de l'élection"} value={electionStartDate} onChange={setElectionStartDate} />
+        <DatePicker label={"Date de début du premier tour"} value={firstRoundStartDate} onChange={setFirstRoundStartDate} />
+        {/* <TextField
           label="Date de début du premier tour"
           type="datetime-local"
           InputLabelProps={{ shrink: true }}
           onChange={(e) => setFirstRoundStartDate(e.target.value)}
-        />
+        /> */}
 
         <Typography variant="subtitle1">Choisir les candidats :</Typography>
         {allCandidates.map((candidate) => (

@@ -41,20 +41,20 @@ export default function VoterManagerPanel({ contract, isAdmin }) {
     }
   };
 
-  const fetchVoters = async () => {
+  const fetchVoters = React.useCallback(async () => {
     try {
       const result = await contract.getAllVoters();
       setVoters(result);
     } catch (err) {
       console.error("Erreur lors du chargement des votants :", err);
     }
-  };
+  }, [contract]);
 
   useEffect(() => {
     if (contract) {
       fetchVoters();
     }
-  }, [contract]);
+  }, [contract, fetchVoters]);
 
   return (
     <Box>

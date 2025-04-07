@@ -82,9 +82,9 @@ function App() {
           {normalizedAccount.toLowerCase() === owner.toLowerCase() &&
             "(Holder)"}
         </Typography>
+        <MenuTabs currentTab={tab} handleTabChange={handleTabChange} />
       </header>
 
-      <MenuTabs currentTab={tab} handleTabChange={handleTabChange} />
 
       <main className="app-content">
         <TabPanel value={tab} index={0}>
