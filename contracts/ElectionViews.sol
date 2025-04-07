@@ -66,12 +66,13 @@ contract ElectionViews is PresidentialElection {
         candidateIds = elections[_electionId].candidateIds;
         votesPerCandidate = new uint256[](candidateIds.length);
         for (uint256 i = 0; i < candidateIds.length; i++) {
-            votesPerCandidate[i] = roundCandidateVotes[_electionId][_round][candidateIds[i]];
+            votesPerCandidate[i] = roundCandidateVotes[_electionId][_round][
+                candidateIds[i]
+            ];
         }
     }
 
-
-        /**
+    /**
      * @dev Retrieves the vote count for a candidate in a specific round.
      * @param _electionId Election identifier.
      * @param _round Round number.
@@ -108,7 +109,10 @@ contract ElectionViews is PresidentialElection {
      * @param _electionId Election identifier.
      * @param _round Round number.
      */
-    function getVotesForRound(uint256 _electionId, uint8 _round)
+    function getVotesForRound(
+        uint256 _electionId,
+        uint8 _round
+    )
         external
         view
         returns (

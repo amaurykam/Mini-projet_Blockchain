@@ -165,7 +165,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
 
       {statusInfo.status === "NotStarted" && (
         <Typography sx={{ mt: 1 }} color="error">
-          ⛔ Le tour n'est pas encore ouvert pour voter.
+          Le tour n'est pas encore ouvert pour voter.
         </Typography>
       )}
 
@@ -173,11 +173,16 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
         <RoundResults results={results} candidates={candidates} />
       )}
 
-      <VoteSection
+      {statusInfo.status === "Ended" ? <VoteSection
         candidates={candidates}
         isRoundActive={isRoundActive}
         onVote={handleVote}
       />
+        :
+        <div>
+
+        </div>
+      }
 
       {isRoundActive && (
         <LiveVotes
@@ -188,7 +193,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
         />
       )}
 
-      {owner && normalizedAccount.toLowerCase() === owner.toLowerCase() && (
+      {statusInfo.status === "Active" && owner && normalizedAccount.toLowerCase() === owner.toLowerCase() && (
         <Box sx={{ mt: 3 }}>
           <Button variant="contained" color="secondary" onClick={handleForceFinalize}>
             Forcer la fin du tour

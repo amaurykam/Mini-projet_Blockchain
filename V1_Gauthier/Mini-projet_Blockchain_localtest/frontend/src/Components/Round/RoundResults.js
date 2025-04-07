@@ -10,7 +10,7 @@ function RoundResults({ results, candidates }) {
 
   return (
     <Box sx={{ mt: 3, p: 2, border: "1px solid #ccc", borderRadius: 2 }}>
-      <Typography variant="h6">📊 Résultats du Tour</Typography>
+      <Typography variant="h6">Résultats du Tour</Typography>
       <Typography>Total de votes : {results.totalVotes}</Typography>
       <List>
         {results.candidates.map((res) => (

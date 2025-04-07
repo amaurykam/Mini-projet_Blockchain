@@ -141,7 +141,7 @@ function ElectionRounds({ election, contract, candidatesContract, normalizedAcco
                 variant="contained"
                 onClick={() => setSelectedRound(round)}
               >
-                Voir les candidats et voter
+                {status !== "Ended" ? "Voir les candidats et voter" : "Voir les statistiques du tour"}
               </Button>
             </CardContent>
           </Card>
