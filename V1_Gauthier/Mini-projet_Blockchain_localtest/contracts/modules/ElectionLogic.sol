@@ -9,10 +9,13 @@ abstract contract ElectionLogic {
 
     uint256 public electionsCount;
     mapping(uint256 => ElectionTypes.Election) public elections;
-    mapping(uint256 => mapping(uint8 => ElectionTypes.Round)) public electionRounds;
-    mapping(uint256 => mapping(uint8 => mapping(uint256 => uint256))) public roundCandidateVotes;
+    mapping(uint256 => mapping(uint8 => ElectionTypes.Round))
+        public electionRounds;
+    mapping(uint256 => mapping(uint8 => mapping(uint256 => uint256)))
+        public roundCandidateVotes;
     mapping(uint256 => mapping(uint8 => address[])) public votersByRound;
-    mapping(uint256 => mapping(uint8 => mapping(address => bool))) public roundHasVoted;
+    mapping(uint256 => mapping(uint8 => mapping(address => bool)))
+        public roundHasVoted;
     mapping(uint256 => uint256[]) public electionWinners; // Gagnants en cas d'égalité au 3e tour
     mapping(uint256 => mapping(uint256 => uint256)) public candidateTotalVotes; // Total des votes par candidat
 
@@ -45,11 +48,10 @@ abstract contract ElectionLogic {
     function _computeCandidateStats(
         uint256 electionId,
         uint8 roundNumber
-    )
-        internal
-        returns (CandidateStats memory stats)
-    {
-        ElectionTypes.Round storage round = electionRounds[electionId][roundNumber];
+    ) internal returns (CandidateStats memory stats) {
+        ElectionTypes.Round storage round = electionRounds[electionId][
+            roundNumber
+        ];
         uint256 length = round.candidateIds.length;
         stats.topCandidates = new uint256[](length);
 
@@ -57,7 +59,9 @@ abstract contract ElectionLogic {
             uint256 candidateId = round.candidateIds[i];
             if (candidateId == 0) continue;
             // Accès direct au mapping
-            uint256 votesForCandidate = roundCandidateVotes[electionId][roundNumber][candidateId];
+            uint256 votesForCandidate = roundCandidateVotes[electionId][
+                roundNumber
+            ][candidateId];
             if (votesForCandidate > stats.highestVotes) {
                 stats.secondHighestVotes = stats.highestVotes;
                 stats.highestVotes = votesForCandidate;
@@ -84,7 +88,10 @@ abstract contract ElectionLogic {
         for (uint256 i = 0; i < candidateIds.length; i++) {
             uint256 candidateId = candidateIds[i];
             if (candidateId == 0) continue;
-            if (roundCandidateVotes[electionId][roundNumber][candidateId] == secondHighest) {
+            if (
+                roundCandidateVotes[electionId][roundNumber][candidateId] ==
+                secondHighest
+            ) {
                 count++;
             }
         }
@@ -99,14 +106,22 @@ abstract contract ElectionLogic {
         uint256 secondHighest,
         uint256[] memory candidateIds
     ) internal view returns (uint256[] memory nextCandidates) {
-        uint256 countSecond = _countCandidatesWithSecondHighest(electionId, roundNumber, secondHighest, candidateIds);
+        uint256 countSecond = _countCandidatesWithSecondHighest(
+            electionId,
+            roundNumber,
+            secondHighest,
+            candidateIds
+        );
         nextCandidates = new uint256[](1 + countSecond);
         nextCandidates[0] = winningCandidate;
         uint256 index = 1;
         for (uint256 i = 0; i < candidateIds.length; i++) {
             uint256 candidateId = candidateIds[i];
             if (candidateId == 0) continue;
-            if (roundCandidateVotes[electionId][roundNumber][candidateId] == secondHighest) {
+            if (
+                roundCandidateVotes[electionId][roundNumber][candidateId] ==
+                secondHighest
+            ) {
                 nextCandidates[index] = candidateId;
                 index++;
             }
@@ -118,8 +133,14 @@ abstract contract ElectionLogic {
         uint256 _firstRoundStartDate,
         uint256[] calldata _candidateIds
     ) internal returns (uint256 electionId) {
-        require(_electionStartDate > block.timestamp, "Election must be in future");
-        require(_firstRoundStartDate >= _electionStartDate, "First round must be after election start");
+        require(
+            _electionStartDate > block.timestamp,
+            "Election must be in future"
+        );
+        require(
+            _firstRoundStartDate >= _electionStartDate,
+            "First round must be after election start"
+        );
         require(_candidateIds.length > 0, "At least one candidate");
 
         electionsCount++;
@@ -171,6 +192,9 @@ abstract contract ElectionLogic {
         )
     {
         ElectionTypes.Round storage round = electionRounds[_electionId][_round];
+
+        require(block.timestamp > round.endDate, "Round not over yet");
+
         totalVotes = round.totalVotes;
         startDate = round.startDate;
         endDate = round.endDate;
@@ -178,37 +202,56 @@ abstract contract ElectionLogic {
         candidateIds = elections[_electionId].candidateIds;
         votesPerCandidate = new uint256[](candidateIds.length);
         for (uint256 i = 0; i < candidateIds.length; i++) {
-            votesPerCandidate[i] = roundCandidateVotes[_electionId][_round][candidateIds[i]];
+            votesPerCandidate[i] = roundCandidateVotes[_electionId][_round][
+                candidateIds[i]
+            ];
         }
     }
-    
+
     function finalizeRound(
         uint256 electionId,
         bool force
     ) external /* onlyAdmin */ {
         ElectionTypes.Election storage e = elections[electionId];
         uint8 roundNumber = e.currentRound;
-        ElectionTypes.Round storage round = electionRounds[electionId][roundNumber];
+        ElectionTypes.Round storage round = electionRounds[electionId][
+            roundNumber
+        ];
 
         if (!force) {
             require(block.timestamp > round.endDate, "Round not ended");
         }
         require(!round.finalized, "Round already finalized");
 
-        uint256 validVotes = round.totalVotes - roundCandidateVotes[electionId][roundNumber][0];
+        uint256 validVotes = round.totalVotes -
+            roundCandidateVotes[electionId][roundNumber][0];
 
-        CandidateStats memory stats = _computeCandidateStats(electionId, roundNumber);
+        CandidateStats memory stats = _computeCandidateStats(
+            electionId,
+            roundNumber
+        );
 
         if (roundNumber == 1) {
-            if (validVotes > 0 && stats.highestVotes * 100 > validVotes * 50 && stats.countTop == 1) {
+            if (
+                validVotes > 0 &&
+                stats.highestVotes * 100 > validVotes * 50 &&
+                stats.countTop == 1
+            ) {
                 e.winnerCandidateId = stats.winningCandidate;
                 round.finalized = true;
-                emit RoundFinalized(electionId, roundNumber, true, stats.winningCandidate);
+                emit RoundFinalized(
+                    electionId,
+                    roundNumber,
+                    true,
+                    stats.winningCandidate
+                );
                 e.isActive = false;
             } else {
                 uint8 nextRoundNumber = roundNumber + 1;
                 e.currentRound = nextRoundNumber;
-                ElectionTypes.Round storage nextRound = electionRounds[electionId][nextRoundNumber];
+                ElectionTypes.Round storage nextRound = electionRounds[
+                    electionId
+                ][nextRoundNumber];
                 nextRound.roundNumber = nextRoundNumber;
                 nextRound.startDate = block.timestamp;
                 nextRound.endDate = block.timestamp + e.roundDuration;
@@ -220,10 +263,18 @@ abstract contract ElectionLogic {
                         nextCandidates[i] = stats.topCandidates[i];
                     }
                 } else {
-                    nextCandidates = _buildNextCandidates(electionId, roundNumber, stats.winningCandidate, stats.secondHighestVotes, round.candidateIds);
+                    nextCandidates = _buildNextCandidates(
+                        electionId,
+                        roundNumber,
+                        stats.winningCandidate,
+                        stats.secondHighestVotes,
+                        round.candidateIds
+                    );
                 }
                 // Ajout du candidat "vote blanc" en préfixe
-                uint256[] memory finalCandidates = new uint256[](nextCandidates.length + 1);
+                uint256[] memory finalCandidates = new uint256[](
+                    nextCandidates.length + 1
+                );
                 finalCandidates[0] = 0;
                 for (uint256 i = 0; i < nextCandidates.length; i++) {
                     finalCandidates[i + 1] = nextCandidates[i];
@@ -236,12 +287,19 @@ abstract contract ElectionLogic {
             if (stats.countTop == 1) {
                 e.winnerCandidateId = stats.winningCandidate;
                 round.finalized = true;
-                emit RoundFinalized(electionId, roundNumber, true, stats.winningCandidate);
+                emit RoundFinalized(
+                    electionId,
+                    roundNumber,
+                    true,
+                    stats.winningCandidate
+                );
                 e.isActive = false;
             } else {
                 uint8 nextRoundNumber = roundNumber + 1;
                 e.currentRound = nextRoundNumber;
-                ElectionTypes.Round storage nextRound = electionRounds[electionId][nextRoundNumber];
+                ElectionTypes.Round storage nextRound = electionRounds[
+                    electionId
+                ][nextRoundNumber];
                 nextRound.roundNumber = nextRoundNumber;
                 nextRound.startDate = block.timestamp;
                 nextRound.endDate = block.timestamp + e.roundDuration;
@@ -250,7 +308,9 @@ abstract contract ElectionLogic {
                     nextCandidates[i] = stats.topCandidates[i];
                 }
                 // Ajout du candidat "vote blanc"
-                uint256[] memory finalCandidates = new uint256[](nextCandidates.length + 1);
+                uint256[] memory finalCandidates = new uint256[](
+                    nextCandidates.length + 1
+                );
                 finalCandidates[0] = 0;
                 for (uint256 i = 0; i < nextCandidates.length; i++) {
                     finalCandidates[i + 1] = nextCandidates[i];
@@ -263,14 +323,21 @@ abstract contract ElectionLogic {
             if (stats.countTop == 1) {
                 e.winnerCandidateId = stats.winningCandidate;
                 round.finalized = true;
-                emit RoundFinalized(electionId, roundNumber, true, stats.winningCandidate);
+                emit RoundFinalized(
+                    electionId,
+                    roundNumber,
+                    true,
+                    stats.winningCandidate
+                );
                 e.isActive = false;
             } else {
                 uint256 finalWinner = 0;
                 uint256 maxTotalVotes = 0;
                 for (uint256 i = 0; i < stats.countTop; i++) {
                     uint256 candidateId = stats.topCandidates[i];
-                    uint256 totalVotesForCandidate = candidateTotalVotes[electionId][candidateId];
+                    uint256 totalVotesForCandidate = candidateTotalVotes[
+                        electionId
+                    ][candidateId];
                     if (totalVotesForCandidate > maxTotalVotes) {
                         maxTotalVotes = totalVotesForCandidate;
                         finalWinner = candidateId;

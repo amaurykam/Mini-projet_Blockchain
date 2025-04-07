@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Button, Card, CardContent } from "@mui/material";
-import RoundDetails from "./RoundDetails";
+import RoundDetails from "./Round/RoundDetails";
 
 function ElectionRounds({ election, contract, candidatesContract, normalizedAccount, owner, onBack }) {
   const [rounds, setRounds] = useState([]);
   const [selectedRound, setSelectedRound] = useState(null);
+  const [roundStatuses, setRoundStatuses] = useState({});
+  const [globalElectionStatus, setGlobalElectionStatus] = useState("Chargement...");
 
+  // Chargement des rounds
   useEffect(() => {
     async function fetchRounds() {
       const currentRound = Number(election.currentRound);
@@ -28,29 +31,59 @@ function ElectionRounds({ election, contract, candidatesContract, normalizedAcco
     fetchRounds();
   }, [election, contract]);
 
-  // Modification : Si le round n'est pas commencé, le décompte correspond au temps restant avant le début.
-  const renderRoundStatus = (round) => {
-    const now = Math.floor(Date.now() / 1000);
-    let status = "";
-    let timeRemaining = 0;
-    if (now < round.startDate) {
-      status = "Pas commencé";
-      timeRemaining = round.startDate - now;
-    } else if (now >= round.startDate && now <= round.endDate) {
-      status = "Ouvert";
-      timeRemaining = round.endDate - now;
-    } else {
-      status = "Fermé";
-    }
-    return { status, timeRemaining };
-  };
+  // Mise à jour automatique des statuts
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Math.floor(Date.now() / 1000);
+      const statuses = {};
 
+      let atLeastOneOpen = false;
+      let allClosed = true;
+      let allNotStarted = true;
+
+      rounds.forEach((round) => {
+        let status = "";
+        let timeRemaining = 0;
+
+        if (now < round.startDate) {
+          status = "Pas commencé";
+          timeRemaining = round.startDate - now;
+          allClosed = false;
+        } else if (now >= round.startDate && now <= round.endDate) {
+          status = "Ouvert";
+          timeRemaining = round.endDate - now;
+          atLeastOneOpen = true;
+          allClosed = false;
+          allNotStarted = false;
+        } else {
+          status = "Fermé";
+          allNotStarted = false;
+        }
+
+        statuses[round.roundNumber] = { status, timeRemaining };
+      });
+
+      if (atLeastOneOpen) {
+        setGlobalElectionStatus("Ouverte");
+      } else if (allNotStarted) {
+        setGlobalElectionStatus("Pas commencée");
+      } else if (allClosed) {
+        setGlobalElectionStatus("Terminée");
+      }
+
+      setRoundStatuses(statuses);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [rounds]);
+
+  // Affichage d’un round sélectionné
   if (selectedRound) {
     return (
       <RoundDetails
         electionId={election.electionId}
         round={selectedRound}
-        contract={contract} // contrat en écriture
+        contract={contract}
         normalizedAccount={normalizedAccount}
         owner={owner}
         onBack={() => setSelectedRound(null)}
@@ -58,17 +91,27 @@ function ElectionRounds({ election, contract, candidatesContract, normalizedAcco
     );
   }
 
+  // Affichage des cards de tours
   return (
     <Box sx={{ mt: 4 }}>
       <Button variant="outlined" onClick={onBack}>
         Retour aux élections
       </Button>
+
       <Typography variant="h5" sx={{ mt: 2 }}>
         Tours de l'élection #{election.electionId.toString()}
       </Typography>
 
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Statut de l'élection : {globalElectionStatus}
+      </Typography>
+
       {rounds.map((round) => {
-        const { status, timeRemaining } = renderRoundStatus(round);
+        const { status, timeRemaining } = roundStatuses[round.roundNumber] || {
+          status: "Chargement...",
+          timeRemaining: 0,
+        };
+
         return (
           <Card key={round.roundNumber} sx={{ mt: 2 }}>
             <CardContent>

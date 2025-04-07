@@ -33,11 +33,12 @@ contract PresidentialElection is ElectionCore {
         uint256 _firstRoundStartDate,
         uint256[] calldata _candidateIds
     ) external onlyAdmin returns (uint256) {
-        return internalCreateElection(
-            _electionStartDate,
-            _firstRoundStartDate,
-            _candidateIds
-        );
+        return
+            internalCreateElection(
+                _electionStartDate,
+                _firstRoundStartDate,
+                _candidateIds
+            );
     }
 
     function castVote(uint256 electionId, uint256 candidateId) external {
@@ -47,11 +48,16 @@ contract PresidentialElection is ElectionCore {
         require(e.isActive, "Election not active");
 
         uint8 currentRound = e.currentRound;
-        ElectionTypes.Round storage round = electionRounds[electionId][currentRound];
+        ElectionTypes.Round storage round = electionRounds[electionId][
+            currentRound
+        ];
 
         require(block.timestamp >= round.startDate, "Round not started");
         require(block.timestamp <= round.endDate, "Round ended");
-        require(!roundHasVoted[electionId][currentRound][msg.sender], "Already voted");
+        require(
+            !roundHasVoted[electionId][currentRound][msg.sender],
+            "Already voted"
+        );
 
         bool validCandidate = false;
         for (uint256 i = 0; i < round.candidateIds.length; i++) {
@@ -66,10 +72,19 @@ contract PresidentialElection is ElectionCore {
         roundCandidateVotes[electionId][currentRound][candidateId]++;
         round.totalVotes++;
 
-        votes[electionId][currentRound][msg.sender] = Vote(candidateId, block.timestamp);
+        votes[electionId][currentRound][msg.sender] = Vote(
+            candidateId,
+            block.timestamp
+        );
         votersByRound[electionId][currentRound].push(msg.sender);
 
-        emit VoteCast(electionId, currentRound, candidateId, msg.sender, block.timestamp);
+        emit VoteCast(
+            electionId,
+            currentRound,
+            candidateId,
+            msg.sender,
+            block.timestamp
+        );
     }
 
     function getElectionRoundResults(
@@ -94,5 +109,13 @@ contract PresidentialElection is ElectionCore {
         uint8 roundNumber
     ) external view returns (uint256[] memory) {
         return electionRounds[electionId][roundNumber].candidateIds;
+    }
+
+    function isRoundActive(
+        uint256 electionId,
+        uint8  roundNumber
+    ) public view returns (bool) {
+        ElectionTypes.Round storage r = electionRounds[electionId][roundNumber];
+        return block.timestamp >= r.startDate && block.timestamp <= r.endDate;
     }
 }
