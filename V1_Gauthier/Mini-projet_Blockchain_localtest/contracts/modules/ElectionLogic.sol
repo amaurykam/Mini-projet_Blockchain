@@ -200,7 +200,9 @@ abstract contract ElectionLogic {
         endDate = round.endDate;
 
         candidateIds = elections[_electionId].candidateIds;
+
         votesPerCandidate = new uint256[](candidateIds.length);
+
         for (uint256 i = 0; i < candidateIds.length; i++) {
             votesPerCandidate[i] = roundCandidateVotes[_electionId][_round][
                 candidateIds[i]
