@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, List, ListItem, ListItemText } from "@mui/material";
+import { Box, Typography, List, ListItem, ListItemText, LinearProgress } from "@mui/material";
 
 function RoundResults({ results, candidates }) {
   const getCandidateName = (id) => {
@@ -19,6 +19,10 @@ function RoundResults({ results, candidates }) {
               primary={getCandidateName(res.id)}
               secondary={`Votes : ${res.votes}`}
             />
+            <LinearProgress variant="determinate" value={(res.votes / results.totalVotes) * 100} sx={{ width: '100%' }} />
+            <Typography variant="body2" color="text.secondary">
+              {Math.round((res.votes / results.totalVotes) * 100)} %
+            </Typography>
           </ListItem>
         ))}
       </List>
