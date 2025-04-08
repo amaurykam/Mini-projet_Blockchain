@@ -41,13 +41,18 @@ function ElectionList({ contract, candidatesContract, normalizedAccount, owner }
   }
 
   return (
-    <Grid container spacing={2}>
-      {elections.map((election, index) => (
-        <Grid item xs={12} sm={6} md={4} key={index}>
-          <ElectionCard election={election} onSelectElection={setSelectedElection} />
-        </Grid>
-      ))}
-    </Grid>
+    <>
+      {elections.length === 0 ?
+        <></>
+        :
+        <Grid container spacing={2}>
+          {elections.map((election, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <ElectionCard election={election} onSelectElection={setSelectedElection} />
+            </Grid>
+          ))}
+        </Grid>}
+    </>
   );
 }
 

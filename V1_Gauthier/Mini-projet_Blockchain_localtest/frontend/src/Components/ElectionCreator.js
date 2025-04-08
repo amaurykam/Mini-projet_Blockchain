@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
   Typography,
-  TextField,
   Button,
   Checkbox,
   FormControlLabel,
@@ -18,7 +17,7 @@ function ElectionCreator({ contract }) {
   const [allCandidates, setAllCandidates] = useState([]);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
 
-  const fetchCandidates = async () => {
+  const fetchCandidates = useCallback(async () => {
     try {
       const count = await contract.candidatesCount();
       const list = [];
@@ -33,11 +32,11 @@ function ElectionCreator({ contract }) {
     } catch (error) {
       console.error("Erreur lors de la récupération des candidats:", error);
     }
-  };
+  }, [contract]);
 
   useEffect(() => {
     if (contract) fetchCandidates();
-  }, [contract]);
+  }, [contract, fetchCandidates]);
 
   const handleCandidateSelect = (candidateId) => {
     setSelectedCandidates((prev) =>
@@ -86,7 +85,7 @@ function ElectionCreator({ contract }) {
           onChange={(e) => setElectionStartDate(e.target.value)}
         /> */}
         <DatePicker label={"Date de début de l'élection"} value={electionStartDate} onChange={setElectionStartDate} />
-        <DatePicker label={"Date de début du premier tour"} value={firstRoundStartDate} onChange={setFirstRoundStartDate} />
+        <DatePicker label={"Date de début du premier tour"} minDateTime={electionStartDate} value={firstRoundStartDate} onChange={setFirstRoundStartDate} />
         {/* <TextField
           label="Date de début du premier tour"
           type="datetime-local"
