@@ -1,8 +1,8 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "C:\\Users\\vince\\OneDrive - ESME\\school\\COURS\\A2MSI\\blockchain\\mini_projet\\Mini-projet_Blockchain\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\core\\ElectionCore.sol": {
-      "lastModificationDate": 1744025501373,
+    "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\core\\ElectionCore.sol": {
+      "lastModificationDate": 1744097728337,
       "contentHash": "21ffffd51f3d1fcd84d961185598b488",
       "sourceName": "contracts/core/ElectionCore.sol",
       "solcConfig": {
@@ -41,8 +41,8 @@
         "ElectionCore"
       ]
     },
-    "C:\\Users\\vince\\OneDrive - ESME\\school\\COURS\\A2MSI\\blockchain\\mini_projet\\Mini-projet_Blockchain\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\modules\\VoterWhitelist.sol": {
-      "lastModificationDate": 1744025501375,
+    "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\modules\\VoterWhitelist.sol": {
+      "lastModificationDate": 1744097728340,
       "contentHash": "e47cbaa1e74bc7e225b46aca52c97534",
       "sourceName": "contracts/modules/VoterWhitelist.sol",
       "solcConfig": {
@@ -77,8 +77,8 @@
         "VoterWhitelist"
       ]
     },
-    "C:\\Users\\vince\\OneDrive - ESME\\school\\COURS\\A2MSI\\blockchain\\mini_projet\\Mini-projet_Blockchain\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\modules\\CandidatesManager.sol": {
-      "lastModificationDate": 1744025501373,
+    "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\modules\\CandidatesManager.sol": {
+      "lastModificationDate": 1744097728338,
       "contentHash": "80e97fa7a9e14b660072ac506cea61b8",
       "sourceName": "contracts/modules/CandidatesManager.sol",
       "solcConfig": {
@@ -113,9 +113,9 @@
         "CandidatesManager"
       ]
     },
-    "C:\\Users\\vince\\OneDrive - ESME\\school\\COURS\\A2MSI\\blockchain\\mini_projet\\Mini-projet_Blockchain\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\modules\\ElectionLogic.sol": {
-      "lastModificationDate": 1744025501375,
-      "contentHash": "bd0b739d9b08a9e19315c1473a922c7e",
+    "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\modules\\ElectionLogic.sol": {
+      "lastModificationDate": 1744101916074,
+      "contentHash": "776a7b30ae92fa89b163becc233664ef",
       "sourceName": "contracts/modules/ElectionLogic.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -151,8 +151,8 @@
         "ElectionLogic"
       ]
     },
-    "C:\\Users\\vince\\OneDrive - ESME\\school\\COURS\\A2MSI\\blockchain\\mini_projet\\Mini-projet_Blockchain\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\utils\\ElectionTypes.sol": {
-      "lastModificationDate": 1744025501375,
+    "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\utils\\ElectionTypes.sol": {
+      "lastModificationDate": 1744097728341,
       "contentHash": "4dafd71491f314875f008dd9ac6aa793",
       "sourceName": "contracts/utils/ElectionTypes.sol",
       "solcConfig": {
@@ -187,8 +187,8 @@
         "ElectionTypes"
       ]
     },
-    "C:\\Users\\vince\\OneDrive - ESME\\school\\COURS\\A2MSI\\blockchain\\mini_projet\\Mini-projet_Blockchain\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\PresidentialElection.sol": {
-      "lastModificationDate": 1744025501373,
+    "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\PresidentialElection.sol": {
+      "lastModificationDate": 1744097728336,
       "contentHash": "181e071a54175c71683624021719d649",
       "sourceName": "contracts/PresidentialElection.sol",
       "solcConfig": {
@@ -226,8 +226,8 @@
         "PresidentialElection"
       ]
     },
-    "C:\\Users\\vince\\OneDrive - ESME\\school\\COURS\\A2MSI\\blockchain\\mini_projet\\Mini-projet_Blockchain\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\Lock.sol": {
-      "lastModificationDate": 1744025501371,
+    "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\Lock.sol": {
+      "lastModificationDate": 1744097728335,
       "contentHash": "642fa52ab63153524e2438211810ea7e",
       "sourceName": "contracts/Lock.sol",
       "solcConfig": {
@@ -262,8 +262,8 @@
         "Lock"
       ]
     },
-    "C:\\Users\\vince\\OneDrive - ESME\\school\\COURS\\A2MSI\\blockchain\\mini_projet\\Mini-projet_Blockchain\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\modules\\AdminManager.sol": {
-      "lastModificationDate": 1744025501373,
+    "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\modules\\AdminManager.sol": {
+      "lastModificationDate": 1744097728338,
       "contentHash": "39679cb9805822ebc5d894634cb75329",
       "sourceName": "contracts/modules/AdminManager.sol",
       "solcConfig": {

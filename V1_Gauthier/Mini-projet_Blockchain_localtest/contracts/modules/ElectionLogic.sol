@@ -177,6 +177,39 @@ abstract contract ElectionLogic {
         );
     }
 
+    // Enum pour définir les états du tour
+    enum RoundStatus {
+        NotStarted,
+        Active,
+        Ended
+    }
+
+    function getRoundStatus(
+        uint256 _electionId,
+        uint8 _round
+    ) public view returns (RoundStatus) {
+        ElectionTypes.Round storage round = electionRounds[_electionId][_round];
+
+        // Vérification si le tour est terminé (finalized)
+        if (round.finalized) {
+            return RoundStatus.Ended;
+        }
+
+        // Si le tour est forcé à se terminer, il doit être marqué comme finalisé
+        if (block.timestamp >= round.endDate && !round.finalized) {
+            // On retourne "Ended" même si le tour est en théorie terminé, mais non finalisé
+            return RoundStatus.Ended;
+        }
+
+        // Vérification si le tour a commencé
+        if (block.timestamp >= round.startDate) {
+            return RoundStatus.Active;
+        }
+
+        // Si le tour n'a pas encore commencé
+        return RoundStatus.NotStarted;
+    }
+
     function getRoundResults(
         uint256 _electionId,
         uint8 _round
