@@ -6,6 +6,8 @@ import RoundStatusBox from "./RoundStatusBox";
 import RoundResults from "./RoundResults";
 import LiveVotes from "./LiveVotes";
 
+const RoundStatus = ["Non démarré", "Actif", "Terminé"];
+
 function RoundDetails({ electionId, round, contract, normalizedAccount, owner, onBack }) {
   const [candidates, setCandidates] = useState([]);
   const [isRoundActive, setIsRoundActive] = useState(false);
@@ -66,22 +68,33 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
 
     const interval = setInterval(async () => {
       try {
-        const status = await contract.getRoundStatus(electionId, round.roundNumber);
+        const now = Math.floor(Date.now() / 1000);
+        const startDate = currentRoundData.startDate;
+        const endDate = currentRoundData.endDate;
+        const isFinalized = currentRoundData.finalized;
+
+        let status = "";
+        if (isFinalized) {
+          status = "Terminé";
+        } else if (now >= startDate && now <= endDate) {
+          status = "Actif";
+        } else if (now < startDate) {
+          status = "Non démarré";
+        } else if (now > endDate) {
+          status = "Terminé";
+        }
         let timeRemaining = 0;
 
-        // Logs pour déboguer le statut récupéré
-        console.log("Statut du round récupéré :", status);
-
         // Mise à jour de l'état en fonction du statut
-        if (status === "NotStarted") {
+        if (status === "Non démarré") {
           timeRemaining = currentRoundData.startDate - Math.floor(Date.now() / 1000);
           setIsRoundActive(false);
           setIsRoundOver(false);
-        } else if (status === "Active") {
+        } else if (status === "Actif") {
           timeRemaining = currentRoundData.endDate - Math.floor(Date.now() / 1000);
-          setIsRoundActive(true); // Round is active, enable voting
+          setIsRoundActive(true);
           setIsRoundOver(false);
-        } else if (status === "Ended") {
+        } else if (status === "Terminé") {
           timeRemaining = 0;
           setIsRoundActive(false);
           setIsRoundOver(true);
@@ -100,12 +113,13 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
   useEffect(() => {
     async function fetchResults() {
       try {
-        const [totalVotes, candidateIds, votesPerCandidate] =
+        const [totalVotes, candidateIds, votesPerCandidate, startDate, endDate] =
           await contract.getRoundResults(electionId, round.roundNumber);
 
         const mappedResults = candidateIds.map((id, index) => ({
           id: Number(id),
           votes: Number(votesPerCandidate[index]),
+          percentage: (Number(votesPerCandidate[index]) / totalVotes) * 100,
         }));
 
         setResults({ totalVotes: Number(totalVotes), candidates: mappedResults });
@@ -118,6 +132,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
       }
     }
 
+    // Si le tour est terminé, on récupère les résultats
     if (contract && isRoundOver && !results) {
       fetchResults();
     }
@@ -167,7 +182,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
 
       <RoundStatusBox round={currentRoundData} statusInfo={statusInfo} />
 
-      {statusInfo.status === "NotStarted" && (
+      {statusInfo.status === "Non démarré" && (
         <Typography sx={{ mt: 1 }} color="error">
           Le tour n'est pas encore ouvert pour voter.
         </Typography>
@@ -177,15 +192,13 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
         <RoundResults results={results} candidates={candidates} />
       )}
 
-      {statusInfo.status !== "Ended" ? <VoteSection
+      {statusInfo.status !== "Terminé" ? <VoteSection
         candidates={candidates}
         isRoundActive={isRoundActive}
         onVote={handleVote}
       />
         :
-        <div>
-
-        </div>
+        <div></div>
       }
 
       {isRoundActive && (

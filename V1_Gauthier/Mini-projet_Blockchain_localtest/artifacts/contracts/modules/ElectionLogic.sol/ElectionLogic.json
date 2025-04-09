@@ -296,30 +296,6 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "_electionId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint8",
-          "name": "_round",
-          "type": "uint8"
-        }
-      ],
-      "name": "getRoundStatus",
-      "outputs": [
-        {
-          "internalType": "enum ElectionLogic.RoundStatus",
-          "name": "",
-          "type": "uint8"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
           "name": "",
           "type": "uint256"
         },

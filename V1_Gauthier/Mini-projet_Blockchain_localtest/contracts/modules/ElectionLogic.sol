@@ -184,32 +184,6 @@ abstract contract ElectionLogic {
         Ended
     }
 
-    function getRoundStatus(
-        uint256 _electionId,
-        uint8 _round
-    ) public view returns (RoundStatus) {
-        ElectionTypes.Round storage round = electionRounds[_electionId][_round];
-
-        // Vérification si le tour est terminé (finalized)
-        if (round.finalized) {
-            return RoundStatus.Ended;
-        }
-
-        // Si le tour est forcé à se terminer, il doit être marqué comme finalisé
-        if (block.timestamp >= round.endDate && !round.finalized) {
-            // On retourne "Ended" même si le tour est en théorie terminé, mais non finalisé
-            return RoundStatus.Ended;
-        }
-
-        // Vérification si le tour a commencé
-        if (block.timestamp >= round.startDate) {
-            return RoundStatus.Active;
-        }
-
-        // Si le tour n'a pas encore commencé
-        return RoundStatus.NotStarted;
-    }
-
     function getRoundResults(
         uint256 _electionId,
         uint8 _round
@@ -243,147 +217,77 @@ abstract contract ElectionLogic {
         }
     }
 
-    function finalizeRound(
-        uint256 electionId,
-        bool force
-    ) external /* onlyAdmin */ {
+    function finalizeRound(uint256 electionId, bool force) external {
         ElectionTypes.Election storage e = elections[electionId];
         uint8 roundNumber = e.currentRound;
         ElectionTypes.Round storage round = electionRounds[electionId][
             roundNumber
         ];
 
+        // Vérification si le tour peut être finalisé (soit de façon forcée, soit après la date de fin)
         if (!force) {
             require(block.timestamp > round.endDate, "Round not ended");
         }
+
         require(!round.finalized, "Round already finalized");
 
-        uint256 validVotes = round.totalVotes -
-            roundCandidateVotes[electionId][roundNumber][0];
-
+        // Calcul des statistiques des candidats (gagnant et second meilleur)
         CandidateStats memory stats = _computeCandidateStats(
             electionId,
             roundNumber
         );
 
-        if (roundNumber == 1) {
-            if (
-                validVotes > 0 &&
-                stats.highestVotes * 100 > validVotes * 50 &&
-                stats.countTop == 1
-            ) {
-                e.winnerCandidateId = stats.winningCandidate;
-                round.finalized = true;
-                emit RoundFinalized(
-                    electionId,
-                    roundNumber,
-                    true,
-                    stats.winningCandidate
-                );
-                e.isActive = false;
-            } else {
-                uint8 nextRoundNumber = roundNumber + 1;
-                e.currentRound = nextRoundNumber;
-                ElectionTypes.Round storage nextRound = electionRounds[
-                    electionId
-                ][nextRoundNumber];
-                nextRound.roundNumber = nextRoundNumber;
-                nextRound.startDate = block.timestamp;
-                nextRound.endDate = block.timestamp + e.roundDuration;
-
-                uint256[] memory nextCandidates;
-                if (stats.countTop > 1) {
-                    nextCandidates = new uint256[](stats.countTop);
-                    for (uint256 i = 0; i < stats.countTop; i++) {
-                        nextCandidates[i] = stats.topCandidates[i];
-                    }
-                } else {
-                    nextCandidates = _buildNextCandidates(
-                        electionId,
-                        roundNumber,
-                        stats.winningCandidate,
-                        stats.secondHighestVotes,
-                        round.candidateIds
-                    );
-                }
-                // Ajout du candidat "vote blanc" en préfixe
-                uint256[] memory finalCandidates = new uint256[](
-                    nextCandidates.length + 1
-                );
-                finalCandidates[0] = 0;
-                for (uint256 i = 0; i < nextCandidates.length; i++) {
-                    finalCandidates[i + 1] = nextCandidates[i];
-                }
-                nextRound.candidateIds = finalCandidates;
-                round.finalized = true;
-                emit RoundFinalized(electionId, roundNumber, false, 0);
-            }
-        } else if (roundNumber == 2) {
-            if (stats.countTop == 1) {
-                e.winnerCandidateId = stats.winningCandidate;
-                round.finalized = true;
-                emit RoundFinalized(
-                    electionId,
-                    roundNumber,
-                    true,
-                    stats.winningCandidate
-                );
-                e.isActive = false;
-            } else {
-                uint8 nextRoundNumber = roundNumber + 1;
-                e.currentRound = nextRoundNumber;
-                ElectionTypes.Round storage nextRound = electionRounds[
-                    electionId
-                ][nextRoundNumber];
-                nextRound.roundNumber = nextRoundNumber;
-                nextRound.startDate = block.timestamp;
-                nextRound.endDate = block.timestamp + e.roundDuration;
-                uint256[] memory nextCandidates = new uint256[](stats.countTop);
+        // Finalisation du tour en fonction du nombre de candidats avec les meilleures voix
+        if (roundNumber == 1 || roundNumber == 2) {
+            // Si plusieurs candidats ont le même nombre de votes, on sélectionne les meilleurs pour le tour suivant
+            uint256[] memory nextCandidates;
+            if (stats.countTop > 1) {
+                nextCandidates = new uint256[](stats.countTop);
                 for (uint256 i = 0; i < stats.countTop; i++) {
                     nextCandidates[i] = stats.topCandidates[i];
                 }
-                // Ajout du candidat "vote blanc"
-                uint256[] memory finalCandidates = new uint256[](
-                    nextCandidates.length + 1
-                );
-                finalCandidates[0] = 0;
-                for (uint256 i = 0; i < nextCandidates.length; i++) {
-                    finalCandidates[i + 1] = nextCandidates[i];
-                }
-                nextRound.candidateIds = finalCandidates;
-                round.finalized = true;
-                emit RoundFinalized(electionId, roundNumber, false, 0);
-            }
-        } else if (roundNumber == 3) {
-            if (stats.countTop == 1) {
-                e.winnerCandidateId = stats.winningCandidate;
-                round.finalized = true;
-                emit RoundFinalized(
+            } else {
+                nextCandidates = _buildNextCandidates(
                     electionId,
                     roundNumber,
-                    true,
-                    stats.winningCandidate
+                    stats.winningCandidate,
+                    stats.secondHighestVotes,
+                    round.candidateIds
                 );
-                e.isActive = false;
-            } else {
-                uint256 finalWinner = 0;
-                uint256 maxTotalVotes = 0;
-                for (uint256 i = 0; i < stats.countTop; i++) {
-                    uint256 candidateId = stats.topCandidates[i];
-                    uint256 totalVotesForCandidate = candidateTotalVotes[
-                        electionId
-                    ][candidateId];
-                    if (totalVotesForCandidate > maxTotalVotes) {
-                        maxTotalVotes = totalVotesForCandidate;
-                        finalWinner = candidateId;
-                    }
-                }
-                e.winnerCandidateId = finalWinner;
-                electionWinners[electionId] = stats.topCandidates;
-                round.finalized = true;
-                emit RoundFinalized(electionId, roundNumber, true, finalWinner);
-                e.isActive = false;
             }
+
+            // Création du tour suivant
+            uint8 nextRoundNumber = roundNumber + 1;
+            e.currentRound = nextRoundNumber;
+            ElectionTypes.Round storage nextRound = electionRounds[electionId][
+                nextRoundNumber
+            ];
+            nextRound.roundNumber = nextRoundNumber;
+            nextRound.startDate = block.timestamp;
+            nextRound.endDate = block.timestamp + e.roundDuration;
+            nextRound.candidateIds = nextCandidates;
+
+            // Ajout de "vote blanc" en début de tableau
+            uint256[] memory finalCandidates = new uint256[](
+                nextCandidates.length + 1
+            );
+            finalCandidates[0] = 0; // ID de "vote blanc"
+            for (uint256 i = 0; i < nextCandidates.length; i++) {
+                finalCandidates[i + 1] = nextCandidates[i];
+            }
+            nextRound.candidateIds = finalCandidates;
+        } else if (roundNumber == 3) {
+            // Tour final - si un seul gagnant
+            uint256 finalWinner = stats.winningCandidate;
+            e.winnerCandidateId = finalWinner;
+            electionWinners[electionId] = stats.topCandidates;
+
+            // Finalisation du tour et mise à jour du statut de l'élection
+            round.finalized = true;
+            e.isActive = false;
         }
+
+        // Finalisation du tour actuel
+        round.finalized = true;
     }
 }

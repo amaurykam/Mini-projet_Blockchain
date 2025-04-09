@@ -2,7 +2,7 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\core\\ElectionCore.sol": {
-      "lastModificationDate": 1744097728337,
+      "lastModificationDate": 1744230648490,
       "contentHash": "21ffffd51f3d1fcd84d961185598b488",
       "sourceName": "contracts/core/ElectionCore.sol",
       "solcConfig": {
@@ -114,8 +114,8 @@
       ]
     },
     "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\modules\\ElectionLogic.sol": {
-      "lastModificationDate": 1744101916074,
-      "contentHash": "776a7b30ae92fa89b163becc233664ef",
+      "lastModificationDate": 1744232193665,
+      "contentHash": "b0798e630edb18cf4caee054c983d8af",
       "sourceName": "contracts/modules/ElectionLogic.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -188,7 +188,7 @@
       ]
     },
     "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\PresidentialElection.sol": {
-      "lastModificationDate": 1744106298679,
+      "lastModificationDate": 1744230648490,
       "contentHash": "2630d70026bd1fa75e2675bc0505ad30",
       "sourceName": "contracts/PresidentialElection.sol",
       "solcConfig": {
