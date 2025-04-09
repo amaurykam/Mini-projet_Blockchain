@@ -113,7 +113,7 @@ contract PresidentialElection is ElectionCore {
 
     function isRoundActive(
         uint256 electionId,
-        uint8  roundNumber
+        uint8 roundNumber
     ) public view returns (bool) {
         ElectionTypes.Round storage r = electionRounds[electionId][roundNumber];
         return block.timestamp >= r.startDate && block.timestamp <= r.endDate;

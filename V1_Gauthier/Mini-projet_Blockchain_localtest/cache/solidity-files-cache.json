@@ -188,8 +188,8 @@
       ]
     },
     "C:\\Users\\Amaury\\OneDrive - ESME\\Cycle Ingénieur\\A2 (Apprentis 2)\\Blockchain\\Mini_Projet\\V1_Gauthier\\Mini-projet_Blockchain_localtest\\contracts\\PresidentialElection.sol": {
-      "lastModificationDate": 1744097728336,
-      "contentHash": "181e071a54175c71683624021719d649",
+      "lastModificationDate": 1744106298679,
+      "contentHash": "2630d70026bd1fa75e2675bc0505ad30",
       "sourceName": "contracts/PresidentialElection.sol",
       "solcConfig": {
         "version": "0.8.28",

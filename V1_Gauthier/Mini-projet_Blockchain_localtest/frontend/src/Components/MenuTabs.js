@@ -29,10 +29,10 @@ export function MenuTabs({ currentTab, handleTabChange }) {
         centered
       >
         <Tab label="View Elections" />
-        <Tab label="Create Election" />
-        <Tab label="Administration" />
         <Tab label="Candidats" />
         <Tab label="Votants" />
+        <Tab label="Create Election" />
+        <Tab label="Administration" />
         <Tab label="Propriété du contrat" />
       </Tabs>
     </Box>

@@ -69,13 +69,17 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
         const status = await contract.getRoundStatus(electionId, round.roundNumber);
         let timeRemaining = 0;
 
+        // Logs pour déboguer le statut récupéré
+        console.log("Statut du round récupéré :", status);
+
+        // Mise à jour de l'état en fonction du statut
         if (status === "NotStarted") {
           timeRemaining = currentRoundData.startDate - Math.floor(Date.now() / 1000);
           setIsRoundActive(false);
           setIsRoundOver(false);
         } else if (status === "Active") {
           timeRemaining = currentRoundData.endDate - Math.floor(Date.now() / 1000);
-          setIsRoundActive(true);
+          setIsRoundActive(true); // Round is active, enable voting
           setIsRoundOver(false);
         } else if (status === "Ended") {
           timeRemaining = 0;
@@ -173,7 +177,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
         <RoundResults results={results} candidates={candidates} />
       )}
 
-      {statusInfo.status === "Ended" ? <VoteSection
+      {statusInfo.status !== "Ended" ? <VoteSection
         candidates={candidates}
         isRoundActive={isRoundActive}
         onVote={handleVote}
@@ -193,7 +197,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
         />
       )}
 
-      {statusInfo.status === "Active" && owner && normalizedAccount.toLowerCase() === owner.toLowerCase() && (
+      {isRoundActive && owner && normalizedAccount.toLowerCase() === owner.toLowerCase() && (
         <Box sx={{ mt: 3 }}>
           <Button variant="contained" color="secondary" onClick={handleForceFinalize}>
             Forcer la fin du tour
