@@ -2,14 +2,22 @@
 
 # dependencies
 /node_modules
-/.pnp
-.pnp.js
+/frontend/node_modules
 
 # testing
 /coverage
 
 # production
 /build
+
+# Hardhat/Foundry/Truffle/etc. artifacts and cache
+/artifacts
+/cache
+*.dbg.json
+*.json
+
+# Ignore build info
+build-info/
 
 # misc
 .DS_Store
