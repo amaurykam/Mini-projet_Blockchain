@@ -1,4 +1,3 @@
-// ElectionCard.js
 import React from "react";
 import { Card, CardContent, Typography, Button } from "@mui/material";
 
@@ -9,15 +8,20 @@ function ElectionCard({ election, onSelectElection }) {
         <Typography variant="h6">
           Élection ID : {election.electionId.toString()}
         </Typography>
+
         <Typography variant="body2">
-          Date de début :{" "}
-          {new Date(Number(election.electionStartDate) * 1000).toLocaleString()}
+          📅 Date de début : {new Date(election.startDate * 1000).toLocaleString()}
         </Typography>
+
         <Typography variant="body2">
-          Statut : {election.isActive ? "Active" : "Terminée"}
+          📌 Statut :{" "}
+          <span style={{ color: election.isActive ? "green" : "red", fontWeight: 600 }}>
+            {election.isActive ? "🟢 En cours" : "🔴 Terminée"}
+          </span>
         </Typography>
-        <Button 
-          variant="contained" 
+
+        <Button
+          variant="contained"
           sx={{ mt: 2 }}
           onClick={() => onSelectElection(election)}
         >

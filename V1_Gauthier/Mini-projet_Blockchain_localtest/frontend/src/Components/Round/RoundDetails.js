@@ -4,7 +4,6 @@ import { Box, Typography, Button } from "@mui/material";
 import VoteSection from "./VoteSection";
 import RoundStatusBox from "./RoundStatusBox";
 import RoundResults from "./RoundResults";
-import LiveVotes from "./LiveVotes";
 
 function RoundDetails({ electionId, round, contract, normalizedAccount, owner, onBack }) {
   const [candidates, setCandidates] = useState([]);
@@ -13,12 +12,14 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
   const [results, setResults] = useState(null);
   const [statusInfo, setStatusInfo] = useState({ status: "", timeRemaining: 0 });
   const [currentRoundData, setCurrentRoundData] = useState(null);
+  const [isFetchingResults, setIsFetchingResults] = useState(false);
 
-  // Recharger les données du round
+  // Récupération des données du round
   useEffect(() => {
     async function fetchRoundData() {
       try {
         const data = await contract.electionRounds(electionId, round.roundNumber);
+        console.log("✅ Données du round :", data);
         setCurrentRoundData({
           ...round,
           startDate: Number(data.startDate),
@@ -28,18 +29,19 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
           winnerCandidateId: Number(data.winnerCandidateId),
         });
       } catch (err) {
-        console.error("Erreur chargement du round :", err);
+        console.error("❌ Erreur chargement du round :", err);
       }
     }
-
     if (contract) fetchRoundData();
   }, [contract, electionId, round.roundNumber, round]);
 
-  // Charger les candidats
+  // Récupération des candidats pour le round
   useEffect(() => {
     async function fetchCandidates() {
       try {
+        console.log("📦 fetchCandidates: Récupération des candidats pour le round", round.roundNumber);
         const candidateIds = await contract.getCandidateIdsForRound(electionId, round.roundNumber);
+        console.log("🆔 IDs des candidats :", candidateIds);
         const candidateDetails = await Promise.all(
           candidateIds.map(async (id) => {
             const c = await contract.candidates(id);
@@ -51,94 +53,139 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
             };
           })
         );
+        console.log("✅ Candidats chargés :", candidateDetails);
         setCandidates(candidateDetails);
       } catch (err) {
-        console.error("Erreur lors du chargement des candidats :", err);
+        console.error("❌ Erreur lors du chargement des candidats :", err);
       }
     }
-
     if (contract) fetchCandidates();
   }, [contract, electionId, round]);
 
-  // Lire le statut réel du round depuis le contrat
+  // Mise à jour de l'état du round et calcul du temps restant
   useEffect(() => {
     if (!currentRoundData) return;
 
+    const statusMap = {
+      0: "NotStarted",
+      1: "Active",
+      2: "Ended",
+    };
+
     const interval = setInterval(async () => {
       try {
-        const status = await contract.getRoundStatus(electionId, round.roundNumber);
+        const rawStatus = await contract.getRoundStatus(electionId, round.roundNumber);
+        const status = statusMap[Number(rawStatus)] || "Unknown";
+        const now = Math.floor(Date.now() / 1000);
         let timeRemaining = 0;
 
         if (status === "NotStarted") {
-          timeRemaining = currentRoundData.startDate - Math.floor(Date.now() / 1000);
+          timeRemaining = currentRoundData.startDate - now;
           setIsRoundActive(false);
           setIsRoundOver(false);
         } else if (status === "Active") {
-          timeRemaining = currentRoundData.endDate - Math.floor(Date.now() / 1000);
+          timeRemaining = currentRoundData.endDate - now;
           setIsRoundActive(true);
           setIsRoundOver(false);
         } else if (status === "Ended") {
-          timeRemaining = 0;
-          setIsRoundActive(false);
-          setIsRoundOver(true);
+          if (currentRoundData.finalized) {
+            timeRemaining = 0;
+            setIsRoundActive(false);
+            setIsRoundOver(true);
+          } else if (now < currentRoundData.endDate) {
+            timeRemaining = currentRoundData.endDate - now;
+            setIsRoundActive(true);
+            setIsRoundOver(false);
+          } else {
+            timeRemaining = 0;
+            setIsRoundActive(false);
+            setIsRoundOver(false);
+          }
         }
+
+        console.log(
+          "🕒 Statut brut :", rawStatus,
+          "| Interprété :", status,
+          "| Finalized :", currentRoundData.finalized,
+          "| Temps restant :", timeRemaining
+        );
 
         setStatusInfo({ status, timeRemaining });
       } catch (err) {
-        console.error("Erreur récupération du statut du round :", err);
+        console.error("❌ Erreur récupération du statut du round :", err);
       }
     }, 1000);
-
     return () => clearInterval(interval);
   }, [currentRoundData, contract, electionId, round.roundNumber]);
 
-  // Résultats une fois le tour terminé
+  // Récupération des résultats une fois le round terminé
   useEffect(() => {
     async function fetchResults() {
       try {
-        const [totalVotes, candidateIds, votesPerCandidate] =
-          await contract.getRoundResults(electionId, round.roundNumber);
-
+        setIsFetchingResults(true);
+        console.log("🎯 Appel getRoundResults pour :", electionId, round.roundNumber);
+        const [totalVotes, candidateIds, votesPerCandidate] = await contract.getRoundResults(electionId, round.roundNumber);
+        // Récupération globale du nombre d'inscrits (utilisez ici la fonction appropriée de votre contrat)
+        const totalRegistered = await contract.getRegisteredVotersCount();
+        // Pour les votes blancs (optionnels selon implémentation)
+        const whiteVotes = await contract.roundCandidateVotes(electionId, round.roundNumber, 0);
         const mappedResults = candidateIds.map((id, index) => ({
           id: Number(id),
           votes: Number(votesPerCandidate[index]),
         }));
-
-        setResults({ totalVotes: Number(totalVotes), candidates: mappedResults });
+        console.log("📊 Résultats :", { totalVotes, mappedResults, totalRegistered, whiteVotes });
+        setResults({
+          totalVotes: Number(totalVotes),
+          candidates: mappedResults,
+          totalRegistered: Number(totalRegistered),
+          whiteVotes: Number(whiteVotes),
+        });
       } catch (err) {
         if (err?.reason?.includes("Round not over yet")) {
-          console.log("Le round n'est pas encore terminé, résultats indisponibles.");
+          console.log("ℹ️ Le round n'est pas encore terminé, résultats indisponibles.");
         } else {
-          console.error("Erreur lors de la récupération des résultats :", err);
+          console.error("❌ Erreur lors de la récupération des résultats :", err);
         }
+      } finally {
+        setIsFetchingResults(false);
       }
     }
-
     if (contract && isRoundOver && !results) {
       fetchResults();
     }
   }, [contract, electionId, round, isRoundOver, results]);
 
-  // Voter pour un candidat
   const handleVote = async (candidateId) => {
     try {
+      console.log(`🗳️ Tentative de vote pour le candidat ${candidateId}...`);
       const tx = await contract.castVote(electionId, candidateId);
+      console.log("🕒 Transaction envoyée :", tx.hash);
       await tx.wait();
+      console.log("✅ Transaction confirmée !");
       alert("Vote enregistré avec succès !");
     } catch (error) {
-      console.error("Erreur lors du vote:", error);
+      console.error("❌ Erreur lors du vote:", error);
       alert("Erreur lors du vote (avez-vous déjà voté ou êtes-vous inscrit ?)");
     }
   };
 
-  // Forcer la fin d’un tour
   const handleForceFinalize = async () => {
     try {
+      console.log("🛑 Finalisation manuelle du round...");
       const tx = await contract.finalizeRound(electionId, true);
+      console.log("🕒 Transaction envoyée :", tx.hash);
       await tx.wait();
       alert("Tour finalisé manuellement !");
+      // Recharger les infos du round après finalisation
+      const updatedData = await contract.electionRounds(electionId, round.roundNumber);
+      setCurrentRoundData((prev) => ({
+        ...prev,
+        finalized: updatedData.finalized,
+        totalVotes: Number(updatedData.totalVotes),
+        winnerCandidateId: Number(updatedData.winnerCandidateId),
+      }));
     } catch (error) {
-      console.error("Erreur lors de la finalisation du tour :", error);
+      console.error("❌ Erreur lors de la finalisation du tour :", error);
       alert("Erreur lors de la finalisation du tour");
     }
   };
@@ -156,43 +203,22 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
       <Button variant="outlined" onClick={onBack}>
         Retour aux tours
       </Button>
-
       <Typography variant="h5" sx={{ mt: 2 }}>
         Candidats pour le Tour #{currentRoundData.roundNumber} de l'élection #{electionId}
       </Typography>
-
       <RoundStatusBox round={currentRoundData} statusInfo={statusInfo} />
-
       {statusInfo.status === "NotStarted" && (
         <Typography sx={{ mt: 1 }} color="error">
           Le tour n'est pas encore ouvert pour voter.
         </Typography>
       )}
-
-      {isRoundOver && results && (
+      {isRoundOver && results ? (
         <RoundResults results={results} candidates={candidates} />
+      ) : isRoundOver && isFetchingResults ? (
+        <Typography sx={{ mt: 2 }}>📊 Chargement des résultats du tour...</Typography>
+      ) : statusInfo.status !== "NotStarted" && (
+        <VoteSection candidates={candidates} isRoundActive={isRoundActive} onVote={handleVote} />
       )}
-
-      {statusInfo.status === "Ended" ? <VoteSection
-        candidates={candidates}
-        isRoundActive={isRoundActive}
-        onVote={handleVote}
-      />
-        :
-        <div>
-
-        </div>
-      }
-
-      {isRoundActive && (
-        <LiveVotes
-          contract={contract}
-          electionId={electionId}
-          roundNumber={currentRoundData.roundNumber}
-          candidates={candidates}
-        />
-      )}
-
       {statusInfo.status === "Active" && owner && normalizedAccount.toLowerCase() === owner.toLowerCase() && (
         <Box sx={{ mt: 3 }}>
           <Button variant="contained" color="secondary" onClick={handleForceFinalize}>

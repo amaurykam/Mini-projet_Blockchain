@@ -85,7 +85,6 @@ function App() {
         <MenuTabs currentTab={tab} handleTabChange={handleTabChange} />
       </header>
 
-
       <main className="app-content">
         <TabPanel value={tab} index={0}>
           <ElectionList
@@ -95,25 +94,12 @@ function App() {
           />
         </TabPanel>
 
-
-
         <TabPanel value={tab} index={1}>
-          <CandidateList
-            contract={electionWriteContract}
-            normalizedAccount={normalizedAccount}
-            isAdmin={isAdmin}
-          />
-        </TabPanel>
-
-        <TabPanel value={tab} index={2}>
-          <VoterManagerPanel contract={electionWriteContract} isAdmin={isAdmin} />
-        </TabPanel>
-
-        <TabPanel value={tab} index={3}>
           <ElectionCreator contract={electionWriteContract} />
         </TabPanel>
 
-        <TabPanel value={tab} index={4}>
+        
+        <TabPanel value={tab} index={2}>
           {normalizedAccount.toLowerCase() === owner.toLowerCase() ? (
             <AdminManagerPanel
               contract={electionWriteContract}
@@ -125,6 +111,18 @@ function App() {
               Accès réservé au contract holder.
             </Typography>
           )}
+        </TabPanel>
+
+        <TabPanel value={tab} index={3}>
+          <CandidateList
+            contract={electionWriteContract}
+            normalizedAccount={normalizedAccount}
+            isAdmin={isAdmin}
+          />
+        </TabPanel>
+      
+        <TabPanel value={tab} index={4}>
+          <VoterManagerPanel contract={electionWriteContract} isAdmin={isAdmin} />
         </TabPanel>
 
         <TabPanel value={tab} index={5}>

@@ -1,83 +1,88 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Button, Card, CardContent } from "@mui/material";
 import RoundDetails from "./Round/RoundDetails";
+import ElectionResult from "./ElectionResult";
 
 function ElectionRounds({ election, contract, candidatesContract, normalizedAccount, owner, onBack }) {
   const [rounds, setRounds] = useState([]);
   const [selectedRound, setSelectedRound] = useState(null);
   const [roundStatuses, setRoundStatuses] = useState({});
   const [globalElectionStatus, setGlobalElectionStatus] = useState("Chargement...");
+  const [showResult, setShowResult] = useState(false);
 
-  // Chargement des rounds
+  // Récupération des rounds de l'élection
   useEffect(() => {
     async function fetchRounds() {
-      const currentRound = Number(election.currentRound);
-      const roundsArray = [];
-
-      for (let roundNumber = 1; roundNumber <= currentRound; roundNumber++) {
-        const roundData = await contract.electionRounds(election.electionId, roundNumber);
-        roundsArray.push({
-          roundNumber,
-          startDate: Number(roundData.startDate),
-          endDate: Number(roundData.endDate),
-          finalized: roundData.finalized,
-          totalVotes: Number(roundData.totalVotes),
-          winnerCandidateId: Number(roundData.winnerCandidateId),
-        });
+      try {
+        const currentRound = Number(election.currentRound);
+        const roundsArray = [];
+        for (let roundNumber = 1; roundNumber <= currentRound; roundNumber++) {
+          const roundData = await contract.electionRounds(election.electionId, roundNumber);
+          roundsArray.push({
+            roundNumber,
+            startDate: Number(roundData.startDate),
+            endDate: Number(roundData.endDate),
+            finalized: roundData.finalized,
+            totalVotes: Number(roundData.totalVotes),
+            winnerCandidateId: Number(roundData.winnerCandidateId),
+          });
+        }
+        setRounds(roundsArray);
+      } catch (error) {
+        console.error("❌ Erreur lors de la récupération des rounds :", error);
       }
-      setRounds(roundsArray);
     }
-
     fetchRounds();
   }, [election, contract]);
 
-  // Mise à jour automatique des statuts
+  // Mise à jour périodique du statut de chaque round
   useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Math.floor(Date.now() / 1000);
-      const statuses = {};
+    if (!rounds.length) return;
 
-      let atLeastOneOpen = false;
-      let allClosed = true;
+    const statusMap = {
+      0: "Pas commencé",
+      1: "Ouvert",
+      2: "Terminé",
+    };
+
+    const interval = setInterval(async () => {
+      const statuses = {};
+      let hasOpen = false;
+      let allEnded = true;
       let allNotStarted = true;
 
-      rounds.forEach((round) => {
-        let status = "";
-        let timeRemaining = 0;
+      for (const round of rounds) {
+        try {
+          const rawStatus = await contract.getRoundStatus(election.electionId, round.roundNumber);
+          const statusCode = Number(rawStatus);
+          console.log(
+            `🔍 Round #${round.roundNumber} - statut brut: ${rawStatus} → statut numérique: ${statusCode}`
+          );
+          const status = statusMap[statusCode] || "Inconnu";
 
-        if (now < round.startDate) {
-          status = "Pas commencé";
-          timeRemaining = round.startDate - now;
-          allClosed = false;
-        } else if (now >= round.startDate && now <= round.endDate) {
-          status = "Ouvert";
-          timeRemaining = round.endDate - now;
-          atLeastOneOpen = true;
-          allClosed = false;
-          allNotStarted = false;
-        } else {
-          status = "Fermé";
-          allNotStarted = false;
+          if (status === "Ouvert") {
+            hasOpen = true;
+            allEnded = false;
+            allNotStarted = false;
+          } else if (status === "Terminé") {
+            allNotStarted = false;
+          } else if (status === "Pas commencé") {
+            allEnded = false;
+          }
+          statuses[round.roundNumber] = { status };
+        } catch (err) {
+          console.error(`❌ Erreur statut round ${round.roundNumber}:`, err);
         }
-
-        statuses[round.roundNumber] = { status, timeRemaining };
-      });
-
-      if (atLeastOneOpen) {
-        setGlobalElectionStatus("Ouverte");
-      } else if (allNotStarted) {
-        setGlobalElectionStatus("Pas commencée");
-      } else if (allClosed) {
-        setGlobalElectionStatus("Terminée");
       }
-
       setRoundStatuses(statuses);
+      if (hasOpen) setGlobalElectionStatus("Ouverte");
+      else if (allNotStarted) setGlobalElectionStatus("Pas commencée");
+      else if (allEnded) setGlobalElectionStatus("Terminée");
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [rounds]);
+  }, [rounds, contract, election.electionId]);
 
-  // Affichage d’un round sélectionné
   if (selectedRound) {
     return (
       <RoundDetails
@@ -91,27 +96,31 @@ function ElectionRounds({ election, contract, candidatesContract, normalizedAcco
     );
   }
 
-  // Affichage des cards de tours
+  // Si l'utilisateur souhaite voir le résultat final, affiche le composant dédié
+  if (showResult) {
+    return (
+      <ElectionResult
+        election={election}
+        contract={contract}
+        onBack={() => setShowResult(false)}
+      />
+    );
+  }
+
   return (
     <Box sx={{ mt: 4 }}>
       <Button variant="outlined" onClick={onBack}>
         Retour aux élections
       </Button>
-
       <Typography variant="h5" sx={{ mt: 2 }}>
-        Tours de l'élection #{election.electionId.toString()}
+        Tours de l'élection #{election.electionId}
       </Typography>
-
       <Typography variant="h6" sx={{ mb: 2 }}>
         Statut de l'élection : {globalElectionStatus}
       </Typography>
 
       {rounds.map((round) => {
-        const { status, timeRemaining } = roundStatuses[round.roundNumber] || {
-          status: "Chargement...",
-          timeRemaining: 0,
-        };
-
+        const roundStatus = roundStatuses[round.roundNumber]?.status || "Chargement...";
         return (
           <Card key={round.roundNumber} sx={{ mt: 2 }}>
             <CardContent>
@@ -123,30 +132,36 @@ function ElectionRounds({ election, contract, candidatesContract, normalizedAcco
                 Date fin : {new Date(round.endDate * 1000).toLocaleString()}
               </Typography>
               <Typography>Total votes : {round.totalVotes}</Typography>
-              <Typography>Statut : {status}</Typography>
-              {status === "Ouvert" && (
-                <Typography>
-                  Temps restant pour voter : {Math.floor(timeRemaining / 3600)}h{" "}
-                  {Math.floor((timeRemaining % 3600) / 60)}m {timeRemaining % 60}s
-                </Typography>
-              )}
-              {status === "Pas commencé" && (
-                <Typography>
-                  Temps avant le début : {Math.floor(timeRemaining / 3600)}h{" "}
-                  {Math.floor((timeRemaining % 3600) / 60)}m {timeRemaining % 60}s
-                </Typography>
-              )}
+              <Typography>Statut : {roundStatus}</Typography>
               <Button
                 sx={{ mt: 2 }}
                 variant="contained"
                 onClick={() => setSelectedRound(round)}
               >
-                {status !== "Ended" ? "Voir les candidats et voter" : "Voir les statistiques du tour"}
+                {roundStatus === "Terminé"
+                  ? "Voir les résultats du tour"
+                  : "Voir les candidats et voter"}
               </Button>
             </CardContent>
           </Card>
         );
       })}
+
+      {/* Bouton pour voir le résultat final de l'élection */}
+      <Box sx={{ mt: 4 }}>
+        <Button
+          variant="contained"
+          onClick={() => setShowResult(true)}
+          disabled={globalElectionStatus !== "Terminée"}
+        >
+          Voir résultat final
+        </Button>
+        {globalElectionStatus !== "Terminée" && (
+          <Typography variant="caption" sx={{ ml: 2 }}>
+            Le résultat final sera affiché une fois tous les rounds terminés.
+          </Typography>
+        )}
+      </Box>
     </Box>
   );
 }
