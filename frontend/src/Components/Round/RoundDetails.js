@@ -134,7 +134,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [currentRoundData, contract, electionId, round.roundNumber]);
+  }, [currentRoundData, contract, electionId, round.roundNumber, debugBlockchainTime]);
 
   // Récupération des résultats une fois le round terminé
   useEffect(() => {

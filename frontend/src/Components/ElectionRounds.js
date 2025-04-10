@@ -151,7 +151,7 @@ function ElectionRounds({ election, contract, candidatesContract, normalizedAcco
       })}
 
       {/* Bouton pour voir le résultat final de l'élection */}
-      <Box sx={{ mt: 4 }}>
+      <Box sx={{ mt: 4, marginTop: "1rem", display: "flex", alignItems: "center", flexDirection: "column", gap: '.5rem' }}>
         <Button
           variant="contained"
           onClick={() => setShowResult(true)}
@@ -160,7 +160,7 @@ function ElectionRounds({ election, contract, candidatesContract, normalizedAcco
           Voir résultat final
         </Button>
         {globalElectionStatus !== "Terminée" && (
-          <Typography variant="caption" sx={{ ml: 2 }}>
+          <Typography variant="caption" sx={{ ml: 2, textAlign: "left" }}>
             Le résultat final sera affiché une fois tous les rounds terminés.
           </Typography>
         )}
