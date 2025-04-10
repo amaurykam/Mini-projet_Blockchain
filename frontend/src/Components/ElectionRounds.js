@@ -129,10 +129,10 @@ function ElectionRounds({ election, contract, candidatesContract, normalizedAcco
             <CardContent>
               <Typography variant="h6">Tour #{round.roundNumber}</Typography>
               <Typography>
-                Date début : {dayjs(round.startDate * 1000).format("DD-MM-YYYY HH:mm")}
+                Date début : {dayjs.unix(round.startDate).tz("Europe/Paris").format("DD-MM-YYYY HH:mm")}
               </Typography>
               <Typography>
-                Date fin : {dayjs(round.endDate * 1000).format("DD-MM-YYYY HH:mm")}
+                Date fin : {dayjs.unix(round.endDate).tz("Europe/Paris").format("DD-MM-YYYY HH:mm")}
               </Typography>
               <Typography>Total votes : {round.totalVotes}</Typography>
               <Typography>Statut : {roundStatus}</Typography>

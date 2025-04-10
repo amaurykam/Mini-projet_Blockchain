@@ -1,15 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  Checkbox,
-  FormControlLabel,
-} from "@mui/material";
+import { Box, Typography, Button, Checkbox, FormControlLabel } from "@mui/material";
 import DatePicker from "./DatePicker";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
-
+// Étendre dayjs avec les plugins nécessaires
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 function ElectionCreator({ contract }) {
   const [electionStartDate, setElectionStartDate] = useState(dayjs(null));
@@ -17,12 +15,24 @@ function ElectionCreator({ contract }) {
   const [allCandidates, setAllCandidates] = useState([]);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
 
+  useEffect(() => {
+    if (electionStartDate && electionStartDate.isValid()) {
+      console.log("ElectionStartDate modifiée (brut) :", electionStartDate.format());
+    }
+  }, [electionStartDate]);
+
+  useEffect(() => {
+    if (firstRoundStartDate && firstRoundStartDate.isValid()) {
+      console.log("FirstRoundStartDate modifiée (brut) :", firstRoundStartDate.format());
+    }
+  }, [firstRoundStartDate]);
+
   const fetchCandidates = useCallback(async () => {
     try {
       const count = await contract.candidatesCount();
       const list = [];
       for (let i = 1; i <= count; i++) {
-        const c = await contract.candidates(i); // appel direct sur le contrat unique
+        const c = await contract.candidates(i);
         list.push({
           id: parseInt(c.id),
           name: `${c.firstName} ${c.lastName}`,
@@ -46,11 +56,6 @@ function ElectionCreator({ contract }) {
     );
   };
 
-  // Conversion sans ajustement de timezone
-  const convertToTimestamp = (dateStr) => {
-    return Math.floor(new Date(dateStr).getTime() / 1000);
-  };
-
   const handleCreateElection = async () => {
     if (!electionStartDate || !firstRoundStartDate || selectedCandidates.length === 0) {
       alert("Veuillez remplir tous les champs et sélectionner au moins un candidat.");
@@ -59,18 +64,15 @@ function ElectionCreator({ contract }) {
 
     try {
       console.log("🚀 Début de création d'une élection...");
-      // Récupération de l'heure blockchain actuelle (en UTC)
       const now = Number(await contract.getCurrentTime());
       console.log("🕒 Heure blockchain actuelle :", now);
+      console.log("🕒 Heure blockchain (lisible Europe/Paris) :", dayjs.unix(now).tz("Europe/Paris").format("DD-MM-YYYY HH:mm"));
 
-      // Conversion explicite en UTC en utilisant dayjs.tz
-      const electionStartTimestamp = dayjs.tz(electionStartDate, "Europe/Paris").unix();
-      const firstRoundStartTimestamp = dayjs.tz(firstRoundStartDate, "Europe/Paris").unix();
+      // Conversion de la date saisie en timestamp UTC en considérant Europe/Paris comme timezone de référence
+      const electionStartTimestamp = electionStartDate.tz("Europe/Paris").unix();
+      const firstRoundStartTimestamp = firstRoundStartDate.tz("Europe/Paris").unix() - 350;
 
-      console.log("📅 Timestamp élection :", electionStartTimestamp);
-      console.log("🏁 Timestamp premier tour :", firstRoundStartTimestamp);
-      console.log("👥 Candidats sélectionnés :", selectedCandidates);
-
+      // Vérifier que la date du premier tour est postérieure à celle de l'élection
       if (firstRoundStartTimestamp < now) {
         alert("⛔ La date de début du premier tour est déjà passée (selon l'heure blockchain).");
         return;
@@ -81,15 +83,11 @@ function ElectionCreator({ contract }) {
         firstRoundStartTimestamp,
         selectedCandidates
       );
-      console.log("📤 Transaction envoyée :", tx.hash);
-
       const receipt = await tx.wait();
-      console.log("✅ Transaction confirmée dans le bloc :", receipt.blockNumber);
       alert("✅ Élection créée avec succès !");
       if (receipt.events && receipt.events.length > 0) {
         console.log("📦 Événements émis :", receipt.events);
       }
-      window.location.reload();
     } catch (err) {
       console.error("❌ Erreur création élection :", err);
       alert("Erreur lors de la création de l'élection.");
@@ -100,20 +98,21 @@ function ElectionCreator({ contract }) {
     <Box sx={{ mt: 4 }}>
       <Typography variant="h6">Créer une nouvelle élection</Typography>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-        {/* <TextField
-          label="Date de début de l'élection"
-          type="datetime-local"
-          InputLabelProps={{ shrink: true }}
-          onChange={(e) => setElectionStartDate(e.target.value)}
-        /> */}
+        {/* Date de début de l'élection */}
         <DatePicker label={"Date de début de l'élection"} value={electionStartDate} onChange={setElectionStartDate} />
+        {electionStartDate && electionStartDate.isValid() && (
+          <Typography variant="caption" sx={{ ml: 1 }}>
+            Heure saisie : {electionStartDate.tz("Europe/Paris").format("DD-MM-YYYY HH:mm")}
+          </Typography>
+        )}
+
+        {/* Date de début du premier tour */}
         <DatePicker label={"Date de début du premier tour"} minDateTime={electionStartDate} value={firstRoundStartDate} onChange={setFirstRoundStartDate} />
-        {/* <TextField
-          label="Date de début du premier tour"
-          type="datetime-local"
-          InputLabelProps={{ shrink: true }}
-          onChange={(e) => setFirstRoundStartDate(e.target.value)}
-        /> */}
+        {firstRoundStartDate && firstRoundStartDate.isValid() && (
+          <Typography variant="caption" sx={{ ml: 1 }}>
+            Heure saisie : {firstRoundStartDate.tz("Europe/Paris").format("DD-MM-YYYY HH:mm")}
+          </Typography>
+        )}
 
         <Typography variant="subtitle1">Choisir les candidats :</Typography>
         {allCandidates.map((candidate) => (
@@ -128,7 +127,6 @@ function ElectionCreator({ contract }) {
             label={candidate.name}
           />
         ))}
-
         <Button variant="contained" onClick={handleCreateElection}>
           Créer l'élection
         </Button>

@@ -13,6 +13,21 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
   const [statusInfo, setStatusInfo] = useState({ status: "", timeRemaining: 0 });
   const [currentRoundData, setCurrentRoundData] = useState(null);
   const [isFetchingResults, setIsFetchingResults] = useState(false);
+  const [nextRoundCandidates, setNextRoundCandidates] = useState([]);
+
+  // Debug : fonction pour afficher l'heure de la blockchain
+  async function debugBlockchainTime() {
+    try {
+      const currentTime = await contract.getCurrentTime();
+      console.log("⏱️ getCurrentTime() retourne :", Number(currentTime));
+      console.log("Tour commence", currentRoundData.startDate);
+      const localTime = Math.floor(Date.now() / 1000);
+      console.log("⏱️ Heure locale :", localTime);
+      console.log("⏱️ Différence (local - blockchain) :", localTime - Number(currentTime));
+    } catch (err) {
+      console.error("❌ Erreur lors de l'appel de getCurrentTime :", err);
+    }
+  }
 
   // Récupération des données du round
   useEffect(() => {
@@ -74,8 +89,11 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
 
     const interval = setInterval(async () => {
       try {
+        // Appel du statut du round via le contrat
         const rawStatus = await contract.getRoundStatus(electionId, round.roundNumber);
         const status = statusMap[Number(rawStatus)] || "Unknown";
+        // Debug blockchain time via getCurrentTime()
+        await debugBlockchainTime();
         const now = Math.floor(Date.now() / 1000);
         let timeRemaining = 0;
 
@@ -125,14 +143,16 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
         setIsFetchingResults(true);
         console.log("🎯 Appel getRoundResults pour :", electionId, round.roundNumber);
         const [totalVotes, candidateIds, votesPerCandidate] = await contract.getRoundResults(electionId, round.roundNumber);
-        // Récupération globale du nombre d'inscrits (utilisez ici la fonction appropriée de votre contrat)
+        // Récupération globale du nombre d'inscrits
         const totalRegistered = await contract.getRegisteredVotersCount();
         // Pour les votes blancs (optionnels selon implémentation)
         const whiteVotes = await contract.roundCandidateVotes(electionId, round.roundNumber, 0);
-        const mappedResults = candidateIds.map((id, index) => ({
-          id: Number(id),
-          votes: Number(votesPerCandidate[index]),
-        }));
+        const mappedResults = candidateIds
+          .map((id, index) => ({
+            id: Number(id),
+            votes: Number(votesPerCandidate[index]),
+          }))
+          .filter((c) => c.id !== 0); // 👈 exclut les votes blancs
         console.log("📊 Résultats :", { totalVotes, mappedResults, totalRegistered, whiteVotes });
         setResults({
           totalVotes: Number(totalVotes),
@@ -154,6 +174,39 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
       fetchResults();
     }
   }, [contract, electionId, round, isRoundOver, results]);
+
+  useEffect(() => {
+    async function fetchNextRoundCandidates() {
+      try {
+        const nextRoundNumber = round.roundNumber + 1;
+        const nextRoundData = await contract.electionRounds(electionId, nextRoundNumber);
+
+        if (nextRoundData && Number(nextRoundData.startDate) > 0) {
+          console.log("🔍 Prochain tour détecté :", nextRoundNumber);
+          const candidateIds = await contract.getCandidateIdsForRound(electionId, nextRoundNumber);
+          const filteredIds = candidateIds.filter((id) => Number(id) !== 0); // 👈 exclure le vote blanc
+          const candidateDetails = await Promise.all(
+            filteredIds.map(async (id) => {
+              const c = await contract.candidates(id);
+              return {
+                id: Number(id),
+                firstName: c.firstName,
+                lastName: c.lastName,
+                politicalParty: c.politicalParty,
+              };
+            })
+          );
+          setNextRoundCandidates(candidateDetails);
+        }
+      } catch (err) {
+        console.log("ℹ️ Aucun prochain tour détecté ou erreur :", err.message);
+      }
+    }
+
+    if (contract && isRoundOver) {
+      fetchNextRoundCandidates();
+    }
+  }, [contract, electionId, round.roundNumber, isRoundOver]);
 
   const handleVote = async (candidateId) => {
     try {
@@ -203,6 +256,18 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
       <Button variant="outlined" onClick={onBack}>
         Retour aux tours
       </Button>
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          🏁 Candidats qualifiés pour le prochain tour :
+        </Typography>
+        {nextRoundCandidates.map((c) => (
+          <Box key={c.id} sx={{ ml: 2 }}>
+            <Typography>
+              - {c.firstName} {c.lastName} ({c.politicalParty})
+            </Typography>
+          </Box>
+        ))}
+      </Box>
       <Typography variant="h5" sx={{ mt: 2 }}>
         Candidats pour le Tour #{currentRoundData.roundNumber} de l'élection #{electionId}
       </Typography>
