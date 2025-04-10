@@ -204,15 +204,16 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
 
   const handleVote = async (candidateId) => {
     try {
-      console.log(`🗳️ Tentative de vote pour le candidat ${candidateId}...`);
-      const tx = await contract.castVote(electionId, candidateId);
-      console.log("🕒 Transaction envoyée :", tx.hash);
+      console.log("🗳️ Tentative de vote pour le candidat", candidateId);
+
+      const tx = await contract.castVote(electionId, candidateId); // ✅ 2 arguments
+      console.log("⏳ Transaction envoyée :", tx.hash);
       await tx.wait();
-      console.log("✅ Transaction confirmée !");
-      alert("Vote enregistré avec succès !");
-    } catch (error) {
-      console.error("❌ Erreur lors du vote:", error);
-      alert("Erreur lors du vote (avez-vous déjà voté ou êtes-vous inscrit ?)");
+
+      alert("✅ Vote enregistré !");
+    } catch (err) {
+      console.error("❌ Erreur lors du vote :", err);
+      alert("Erreur lors du vote : " + (err.reason || err.message || "Erreur inconnue"));
     }
   };
 
