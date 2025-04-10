@@ -14,6 +14,7 @@ function ElectionCreator({ contract }) {
   const [firstRoundStartDate, setFirstRoundStartDate] = useState(dayjs(null));
   const [allCandidates, setAllCandidates] = useState([]);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
+  const [blockchainNow, setBlockchainNow] = useState(null);
 
   useEffect(() => {
     if (electionStartDate && electionStartDate.isValid()) {
@@ -57,34 +58,36 @@ function ElectionCreator({ contract }) {
   };
 
   const handleCreateElection = async () => {
+    const blockchainNow = Number(await contract.getCurrentTime());
+    setBlockchainNow(blockchainNow);
     if (!electionStartDate || !firstRoundStartDate || selectedCandidates.length === 0) {
       alert("Veuillez remplir tous les champs et sélectionner au moins un candidat.");
       return;
     }
-  
+
     try {
       const blockchainNow = Number(await contract.getCurrentTime());
       const localNow = Math.floor(Date.now() / 1000);
       const offset = localNow - blockchainNow;
-  
+
       console.log("🕒 Heure blockchain actuelle :", blockchainNow);
       console.log("🕒 Heure blockchain (lisible Europe/Paris) :", dayjs.unix(blockchainNow).tz("Europe/Paris").format("DD-MM-YYYY HH:mm"));
-  
+
       // Conversion des dates choisies en timestamp UTC
-      const electionStartTimestamp = electionStartDate.tz("Europe/Paris").unix();
+      const electionStartTimestamp = electionStartDate.tz("Europe/Paris").unix() - offset;
       const userChosenFirstRoundTimestamp = firstRoundStartDate.tz("Europe/Paris").unix();
-  
-      // Correction du timestamp du premier tour pour l'aligner avec l'heure blockchain
       const firstRoundStartTimestamp = userChosenFirstRoundTimestamp - offset;
-  
+
+      // Correction du timestamp du premier tour pour l'aligner avec l'heure blockchain
+
       // Vérifier que la date du premier tour est postérieure à l’heure actuelle blockchain
       if (firstRoundStartTimestamp < blockchainNow) {
         alert("⛔ La date de début du premier tour est déjà passée (selon l'heure blockchain).");
         return;
       }
-  
+
       console.log("📌 Date de début premier tour (corrigée) :", dayjs.unix(firstRoundStartTimestamp).tz("Europe/Paris").format("DD-MM-YYYY HH:mm"));
-  
+
       const tx = await contract.createElection(
         electionStartTimestamp,
         firstRoundStartTimestamp,
@@ -103,6 +106,18 @@ function ElectionCreator({ contract }) {
 
   return (
     <Box sx={{ mt: 4 }}>
+      {firstRoundStartDate?.isValid() && blockchainNow !== null && (
+        <Box sx={{ mt: 1, p: 1, border: "1px solid #ccc", borderRadius: 2 }}>
+          <Typography variant="body2">
+            🕒 <strong>Heure actuelle de la blockchain</strong> :{" "}
+            {dayjs.unix(blockchainNow).tz("Europe/Paris").format("DD-MM-YYYY HH:mm:ss")}
+          </Typography>
+          <Typography variant="body2">
+            📌 <strong>Début du 1er tour (heure blockchain prévue)</strong> :{" "}
+            {dayjs.unix(firstRoundStartDate.tz("Europe/Paris").unix() - (Math.floor(Date.now() / 1000) - blockchainNow)).tz("Europe/Paris").format("DD-MM-YYYY HH:mm:ss")}
+          </Typography>
+        </Box>
+      )}
       <Typography variant="h6">Créer une nouvelle élection</Typography>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
         {/* Date de début de l'élection */}

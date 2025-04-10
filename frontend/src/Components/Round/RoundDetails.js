@@ -14,6 +14,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
   const [currentRoundData, setCurrentRoundData] = useState(null);
   const [isFetchingResults, setIsFetchingResults] = useState(false);
   const [nextRoundCandidates, setNextRoundCandidates] = useState([]);
+  const [simulatedBlockchainNow, setSimulatedBlockchainNow] = useState(null);
 
   // Debug : fonction pour afficher l'heure de la blockchain
   async function debugBlockchainTime() {
@@ -28,6 +29,26 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
       console.error("❌ Erreur lors de l'appel de getCurrentTime :", err);
     }
   }
+
+  useEffect(() => {
+    async function initBlockchainClock() {
+      try {
+        const now = Number(await contract.getCurrentTime());
+        setSimulatedBlockchainNow(now);
+      } catch (err) {
+        console.error("❌ Erreur init horloge blockchain :", err);
+      }
+    }
+    if (contract) initBlockchainClock();
+  }, [contract]);
+
+  useEffect(() => {
+    if (simulatedBlockchainNow === null) return;
+    const interval = setInterval(() => {
+      setSimulatedBlockchainNow((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [simulatedBlockchainNow]);
 
   // Récupération des données du round
   useEffect(() => {
@@ -77,9 +98,8 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
     if (contract) fetchCandidates();
   }, [contract, electionId, round]);
 
-  // Mise à jour de l'état du round et calcul du temps restant
   useEffect(() => {
-    if (!currentRoundData) return;
+    if (!currentRoundData || simulatedBlockchainNow === null) return;
 
     const statusMap = {
       0: "NotStarted",
@@ -87,55 +107,29 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
       2: "Ended",
     };
 
-    const interval = setInterval(async () => {
-      try {
-        // Appel du statut du round via le contrat
-        const rawStatus = await contract.getRoundStatus(electionId, round.roundNumber);
-        const status = statusMap[Number(rawStatus)] || "Unknown";
-        // Debug blockchain time via getCurrentTime()
-        await debugBlockchainTime();
-        const now = Math.floor(Date.now() / 1000);
-        let timeRemaining = 0;
+    const now = simulatedBlockchainNow;
+    let status = "Unknown";
+    let timeRemaining = 0;
 
-        if (status === "NotStarted") {
-          timeRemaining = currentRoundData.startDate - now;
-          setIsRoundActive(false);
-          setIsRoundOver(false);
-        } else if (status === "Active") {
-          timeRemaining = currentRoundData.endDate - now;
-          setIsRoundActive(true);
-          setIsRoundOver(false);
-        } else if (status === "Ended") {
-          if (currentRoundData.finalized) {
-            timeRemaining = 0;
-            setIsRoundActive(false);
-            setIsRoundOver(true);
-          } else if (now < currentRoundData.endDate) {
-            timeRemaining = currentRoundData.endDate - now;
-            setIsRoundActive(true);
-            setIsRoundOver(false);
-          } else {
-            timeRemaining = 0;
-            setIsRoundActive(false);
-            setIsRoundOver(false);
-          }
-        }
+    if (currentRoundData.finalized || now >= currentRoundData.endDate) {
+      status = "Ended";
+      timeRemaining = 0;
+      setIsRoundActive(false);
+      setIsRoundOver(true);
+    } else if (now >= currentRoundData.startDate) {
+      status = "Active";
+      timeRemaining = currentRoundData.endDate - now;
+      setIsRoundActive(true);
+      setIsRoundOver(false);
+    } else {
+      status = "NotStarted";
+      timeRemaining = currentRoundData.startDate - now;
+      setIsRoundActive(false);
+      setIsRoundOver(false);
+    }
 
-        console.log(
-          "🕒 Statut brut :", rawStatus,
-          "| Interprété :", status,
-          "| Finalized :", currentRoundData.finalized,
-          "| Temps restant :", timeRemaining
-        );
-
-        setStatusInfo({ status, timeRemaining });
-      } catch (err) {
-        console.error("❌ Erreur récupération du statut du round :", err);
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [currentRoundData, contract, electionId, round.roundNumber]);
-
+    setStatusInfo({ status, timeRemaining });
+  }, [currentRoundData, simulatedBlockchainNow]);
   // Récupération des résultats une fois le round terminé
   useEffect(() => {
     async function fetchResults() {
@@ -273,9 +267,14 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
       </Typography>
       <RoundStatusBox round={currentRoundData} statusInfo={statusInfo} />
       {statusInfo.status === "NotStarted" && (
-        <Typography sx={{ mt: 1 }} color="error">
-          Le tour n'est pas encore ouvert pour voter.
-        </Typography>
+        <Box sx={{ mt: 2 }}>
+          <Typography color="error">
+            ⏳ Le tour n'est pas encore ouvert pour voter.
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            🕒 Début dans : {Math.floor(statusInfo.timeRemaining / 60)} min {statusInfo.timeRemaining % 60} sec
+          </Typography>
+        </Box>
       )}
       {isRoundOver && results ? (
         <RoundResults results={results} candidates={candidates} />
