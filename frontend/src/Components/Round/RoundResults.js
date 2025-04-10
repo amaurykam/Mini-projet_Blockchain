@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Divider, LinearProgress, Typography } from "@mui/material";
 
 function RoundResults({ results, candidates }) {
   console.log("🔍 [RoundResults] Composant rendu");
@@ -25,13 +25,24 @@ function RoundResults({ results, candidates }) {
       <Typography variant="subtitle1" sx={{ mt: 3 }}>
         🗳️ Votes par candidat :
       </Typography>
-      {candidates.map((c) => {
+      {candidates.map((c, index) => {
         const match = results.candidates.find((r) => r.id === c.id);
         console.log(`📥 Résultat pour ${c.firstName} ${c.lastName} :`, match?.votes ?? 0);
         return (
-          <Typography key={c.id}>
-            {c.firstName} {c.lastName} : {match?.votes ?? 0} vote(s)
-          </Typography>
+          <div key={c.id} className='tour-candidate-container'>
+            <div className='tour-candidate detailed'>
+              <div className='tour-candidate-name'>
+                <Typography key={c.id}>
+                  {c.firstName} {c.lastName} : {match?.votes ?? 0} vote(s)
+                </Typography>
+              </div>
+              <LinearProgress variant="determinate" value={match ? ((match.votes / results.totalVotes) * 100) : 0} sx={{ width: '100%' }} />
+              <div className='number'>
+                {match?.votes && Math.round((match.votes / results.totalVotes) * 100)} %
+              </div>
+            </div>
+            {index < (candidates.length - 1) && <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>}
+          </div>
         );
       })}
     </Box>

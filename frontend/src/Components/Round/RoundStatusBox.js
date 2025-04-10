@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 
 function RoundStatusBox({ round, statusInfo }) {
+
   const formatTime = (seconds) => {
     const positiveSeconds = Math.max(0, seconds);
     const h = Math.floor(positiveSeconds / 3600);

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, Card, CardContent } from "@mui/material";
+import { Box, Typography, Button, Card, CardContent, LinearProgress, Divider } from "@mui/material";
 import dayjs from "dayjs";
 
 function ElectionResult({ election, contract, normalizedAccount, owner, onBack }) {
   const [globalWinner, setGlobalWinner] = useState(null);
   const [globalWinnerDetails, setGlobalWinnerDetails] = useState(null);
   const [roundDetails, setRoundDetails] = useState([]);
+  const [isRoundsDetailsVisible, setIsRoundsDetailsVisible] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -96,6 +97,7 @@ function ElectionResult({ election, contract, normalizedAccount, owner, onBack }
           }
         }
         setRoundDetails(roundsArray);
+        setIsRoundsDetailsVisible(roundsArray.map(() => false)); // Initialiser la visibilité de chaque round à faux
       } catch (err) {
         console.error("Erreur lors de la récupération des résultats détaillés :", err);
       } finally {
@@ -157,13 +159,35 @@ function ElectionResult({ election, contract, normalizedAccount, owner, onBack }
                       <Typography variant="subtitle1">
                         🗳️ Votes par candidat :
                       </Typography>
-                      <Typography>
-                        Vote Blanc : {round.whiteVotes} vote(s)
-                      </Typography>
-                      {round.candidateVotes.map((cv) => (
-                        <Typography key={cv.id}>
-                          {cv.name} : {cv.votes} vote(s)
-                        </Typography>
+                      <div className='tour-candidate detailed'>
+                        <div className='tour-candidate-container'>
+                          <div className='tour-candidate-name'>
+                            <Typography>
+                              Vote Blanc : {round.whiteVotes} vote(s)
+                            </Typography>
+                          </div>
+                          <LinearProgress variant="determinate" value={(round.whiteVotes / round.totalVotes) * 100} sx={{ width: '100%' }} />
+                          <div className='number'>
+                            {Math.round((round.whiteVotes / round.totalVotes) * 100)} %
+                          </div>
+                        </div>
+                        <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>
+                      </div>
+                      {round.candidateVotes.map((cv, index) => (
+                        <div key={cv.id} className='tour-candidate-container'>
+                          <div className='tour-candidate detailed'>
+                            <div className='tour-candidate-name'>
+                              <Typography key={cv.id}>
+                                {cv.name} : {cv.votes ?? 0} vote(s)
+                              </Typography>
+                            </div>
+                            <LinearProgress variant="determinate" value={(cv.votes / round.totalVotes) * 100} sx={{ width: '100%' }} />
+                            <div className='number'>
+                              {Math.round((cv.votes / round.totalVotes) * 100)} %
+                            </div>
+                          </div>
+                          {index < (round.candidateVotes.length - 1) && <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>}
+                        </div>
                       ))}
                     </Box>
 

@@ -70,7 +70,7 @@ function ElectionCreator({ contract }) {
 
       // Conversion de la date saisie en timestamp UTC en considérant Europe/Paris comme timezone de référence
       const electionStartTimestamp = electionStartDate.tz("Europe/Paris").unix();
-      const firstRoundStartTimestamp = firstRoundStartDate.tz("Europe/Paris").unix() - 350;
+      const firstRoundStartTimestamp = firstRoundStartDate.tz("Europe/Paris").unix() - 125;
 
       // Vérifier que la date du premier tour est postérieure à celle de l'élection
       if (firstRoundStartTimestamp < now) {

@@ -281,7 +281,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
         <RoundResults results={results} candidates={candidates} />
       ) : isRoundOver && isFetchingResults ? (
         <Typography sx={{ mt: 2 }}>📊 Chargement des résultats du tour...</Typography>
-      ) : statusInfo.status !== "NotStarted" && (
+      ) : statusInfo.status !== "NotStarted" && statusInfo.status !== '' && (
         <VoteSection candidates={candidates} isRoundActive={isRoundActive} onVote={handleVote} />
       )}
       {statusInfo.status === "Active" && owner && normalizedAccount.toLowerCase() === owner.toLowerCase() && (

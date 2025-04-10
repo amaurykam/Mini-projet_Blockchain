@@ -1,5 +1,5 @@
 // src/components/AdminManagerPanel.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Box, Typography, TextField, Button, List, ListItem, ListItemText } from "@mui/material";
 
 const AdminManagerPanel = ({ contract, owner, normalizedAccount }) => {
@@ -9,7 +9,7 @@ const AdminManagerPanel = ({ contract, owner, normalizedAccount }) => {
 
   const isHolder = normalizedAccount.toLowerCase() === owner.toLowerCase();
 
-  const fetchAdmins = async () => {
+  const fetchAdmins = useCallback(async () => {
     try {
       setLoadingAdmins(true);
       const admins = await contract.getAdmins();
@@ -20,11 +20,11 @@ const AdminManagerPanel = ({ contract, owner, normalizedAccount }) => {
     } finally {
       setLoadingAdmins(false);
     }
-  };
+  }, [contract]);
 
   useEffect(() => {
     if (contract) fetchAdmins();
-  }, [contract]);
+  }, [contract, fetchAdmins]);
 
   const handleAddAdmin = async () => {
     if (!newAdmin) {
@@ -66,10 +66,11 @@ const AdminManagerPanel = ({ contract, owner, normalizedAccount }) => {
       </Typography>
 
       {adminList.length > 0 ? (
-        <List>
+        <List sx={{ justifyContent: 'center' }}>
           {adminList.map((admin) => (
             <ListItem
               key={admin}
+              sx={{ justifyContent: 'space-between', width: '100%', display: 'flex' }}
               secondaryAction={
                 isHolder && (
                   <Button variant="outlined" onClick={() => handleRemoveAdmin(admin)}>
@@ -78,7 +79,12 @@ const AdminManagerPanel = ({ contract, owner, normalizedAccount }) => {
                 )
               }
             >
-              <ListItemText primary={admin} />
+              <ListItemText sx={{
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word',
+                width: '100%',
+              }} primary={admin} />
             </ListItem>
           ))}
         </List>
