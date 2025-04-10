@@ -61,23 +61,30 @@ function ElectionCreator({ contract }) {
       alert("Veuillez remplir tous les champs et sélectionner au moins un candidat.");
       return;
     }
-
+  
     try {
-      console.log("🚀 Début de création d'une élection...");
-      const now = Number(await contract.getCurrentTime());
-      console.log("🕒 Heure blockchain actuelle :", now);
-      console.log("🕒 Heure blockchain (lisible Europe/Paris) :", dayjs.unix(now).tz("Europe/Paris").format("DD-MM-YYYY HH:mm"));
-
-      // Conversion de la date saisie en timestamp UTC en considérant Europe/Paris comme timezone de référence
+      const blockchainNow = Number(await contract.getCurrentTime());
+      const localNow = Math.floor(Date.now() / 1000);
+      const offset = localNow - blockchainNow;
+  
+      console.log("🕒 Heure blockchain actuelle :", blockchainNow);
+      console.log("🕒 Heure blockchain (lisible Europe/Paris) :", dayjs.unix(blockchainNow).tz("Europe/Paris").format("DD-MM-YYYY HH:mm"));
+  
+      // Conversion des dates choisies en timestamp UTC
       const electionStartTimestamp = electionStartDate.tz("Europe/Paris").unix();
-      const firstRoundStartTimestamp = firstRoundStartDate.tz("Europe/Paris").unix() - 350;
-
-      // Vérifier que la date du premier tour est postérieure à celle de l'élection
-      if (firstRoundStartTimestamp < now) {
+      const userChosenFirstRoundTimestamp = firstRoundStartDate.tz("Europe/Paris").unix();
+  
+      // Correction du timestamp du premier tour pour l'aligner avec l'heure blockchain
+      const firstRoundStartTimestamp = userChosenFirstRoundTimestamp - offset;
+  
+      // Vérifier que la date du premier tour est postérieure à l’heure actuelle blockchain
+      if (firstRoundStartTimestamp < blockchainNow) {
         alert("⛔ La date de début du premier tour est déjà passée (selon l'heure blockchain).");
         return;
       }
-
+  
+      console.log("📌 Date de début premier tour (corrigée) :", dayjs.unix(firstRoundStartTimestamp).tz("Europe/Paris").format("DD-MM-YYYY HH:mm"));
+  
       const tx = await contract.createElection(
         electionStartTimestamp,
         firstRoundStartTimestamp,
