@@ -39,7 +39,7 @@ function RoundResults({ results, candidates, nextRoundCandidates }) {
                   ❌ Absents :
                 </Typography>
                 <Typography className="value">
-                  {results.absent}
+                  {absents}
                 </Typography>
               </li>
               <Divider></Divider>
