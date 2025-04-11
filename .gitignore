@@ -3,7 +3,8 @@
 # dependencies
 /node_modules
 /frontend/node_modules
-
+/V1_Gauthier/Mini-projet_Blockchain_localtest/node_modules
+/vote-app/node_modules
 # testing
 /coverage
 
