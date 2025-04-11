@@ -1,6 +1,0 @@
-await network.provider.send("evm_mine");
-await network.provider.send("evm_increaseTime", [600]);
-await network.provider.send("evm_mine");
-await network.provider.send("evm_increaseTime", [600]);
-await network.provider.send("evm_mine");
-await network.provider.send("evm_increaseTime", [600]);
