@@ -277,7 +277,7 @@ function RoundDetails({ electionId, round, contract, normalizedAccount, owner, o
         </Box>
       )}
       {isRoundOver && results ? (
-        <RoundResults results={results} candidates={candidates} />
+        <RoundResults results={results} candidates={candidates} nextRoundCandidates={nextRoundCandidates} />
       ) : isRoundOver && isFetchingResults ? (
         <Typography sx={{ mt: 2 }}>📊 Chargement des résultats du tour...</Typography>
       ) : statusInfo.status !== "NotStarted" && statusInfo.status !== '' && (

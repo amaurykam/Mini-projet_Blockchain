@@ -425,11 +425,18 @@
     align-items: center;
 
     >* {
-      width: 50%;
+      width: fit-content;
       text-align: left;
       white-space: normal;
       word-break: work-break;
       overflow-wrap: break-word;
+      width: 14rem;
+
+      &.value {
+        text-align: center;
+        flex-grow: 1;
+        width: auto;
+      }
     }
   }
 }

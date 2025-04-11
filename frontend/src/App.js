@@ -43,7 +43,7 @@ function App() {
           setAccount(accounts[0]);
 
           // Adresse de votre contrat
-          const electionContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+          const electionContractAddress = "0xFa9c6Cba3fa6cE431173bF422c84a653C407e525";
 
           // Instanciation des contrats lecture / écriture
           const electionRead = new Contract(
@@ -57,6 +57,7 @@ function App() {
             ElectionArtifact.abi,
             signer
           );
+          console.log(signer)
 
           setElectionReadContract(electionRead);
           setElectionWriteContract(electionWrite);

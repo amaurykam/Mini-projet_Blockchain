@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Button, Card, CardContent, LinearProgress, Divider, IconButton } from "@mui/material";
-import dayjs from "dayjs";
-import { KeyboardArrowUpIcon, KeyboardArrowDownIcon } from '@mui/icons-material';
+// import dayjs from "dayjs";
+import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 
 function ElectionResult({ election, contract, normalizedAccount, owner, onBack }) {
   const [globalWinner, setGlobalWinner] = useState(null);
@@ -69,18 +69,20 @@ function ElectionResult({ election, contract, normalizedAccount, owner, onBack }
             if (roundNumber < currentRound) {
               try {
                 const nextRoundData = await contract.electionRounds(election.electionId, roundNumber + 1);
-                // nextRoundData.candidateIds est un tableau de uint256
-                // On filtre le candidat 0 (vote blanc) et transforme en nombres.
-                const qualifiedIds = nextRoundData.candidateIds
+                const candidateIds = await contract.getCandidateIdsForRound(election.electionId, roundNumber + 1);
+                console.log(nextRoundData)
+                const qualifiedIds = candidateIds
                   .map(id => Number(id))
                   .filter(id => id !== 0);
                 qualifiedCandidates = await Promise.all(
                   qualifiedIds.map(async (cid) => {
                     const cand = await contract.candidates(cid);
+                    console.log(cand)
                     return {
                       id: cid,
                       name: `${cand.firstName} ${cand.lastName}`,
                       politicalParty: cand.politicalParty,
+                      votes: Number(candidateVotes.find(v => v.id === cid)?.votes ?? 0),
                     };
                   })
                 );
@@ -143,57 +145,110 @@ function ElectionResult({ election, contract, normalizedAccount, owner, onBack }
           <Box sx={{ mt: 4 }}>
             <Typography variant="h5">Résultats par tour</Typography>
             {roundDetails.length > 0 ? (
-              roundDetails.map((round, index) => (
+              roundDetails.map((round, roundIndex) => (
                 <Card key={round.roundNumber} sx={{ mt: 2 }}>
-                  <CardContent>
+                  <CardContent sx={{ transitionDuration: '0.3s' }}>
                     <Typography variant="h6">Tour #{round.roundNumber}</Typography>
-                    <Typography>
-                      👥 Nombre d’inscrits : {round.totalRegistered}
-                    </Typography>
-                    <Typography>
-                      ⚪ Votes blancs : {round.whiteVotes}
-                    </Typography>
-                    <Typography>
-                      ❌ Absents : {round.absent}
-                    </Typography>
-                    <Typography>
-                      ✅ Total des votes : {round.totalVotes}
-                    </Typography>
-                    <Typography>
-                      📈 Votes exprimés (hors blancs) : {round.votesExpressed}
-                    </Typography>
-                    {/* Si ce round n'est pas le dernier, afficher les candidats qualifiés pour le tour suivant */}
-                    {round.qualifiedCandidates && round.qualifiedCandidates.length > 0 && !isRoundsDetailsVisible[index] ? (
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant="subtitle1">
-                          🔜 Candidats qualifiés pour le tour suivant :
+                    <ul className="list-stats">
+                      <li>
+                        <Typography>👥 Nombre d’inscrits : </Typography>
+                        <Typography className="value"> {round.totalRegistered}  </Typography>
+                      </li>
+                      <Divider></Divider>
+                      <li>
+                        <Typography>
+                          ⚪ Votes blancs :
                         </Typography>
+                        <Typography className="value">
+                          {round.whiteVotes}
+                        </Typography>
+                      </li>
+                      <Divider></Divider>
+                      <li>
+                        <Typography>
+                          ❌ Absents :
+                        </Typography>
+                        <Typography className="value">
+                          {round.absent}
+                        </Typography>
+                      </li>
+                      <Divider></Divider>
+                      <li>
+                        <Typography>
+                          ✅ Total des votes :
+                        </Typography>
+                        <Typography className="value">
+                          {round.totalVotes}
+                        </Typography>
+                      </li>
+                      <Divider></Divider>
+                      <li>
+                        <Typography>
+                          📈 Votes exprimés (hors blancs) :
+                        </Typography>
+                        <Typography className="value">
+                          {round.votesExpressed}
+                        </Typography>
+                      </li>
+                    </ul>
+                    {/* Si ce round n'est pas le dernier, afficher les candidats qualifiés pour le tour suivant */}
+                    <Typography variant="subtitle1">
+                      🗳️ Votes par candidat :
+                    </Typography>
+                    {round.qualifiedCandidates && round.qualifiedCandidates.length > 0 ? (
+                      <Box sx={{ mt: 2 }}>
+                        {/* <Typography variant="subtitle1">
+                          🔜 Candidats qualifiés pour le tour suivant :
+                        </Typography> */}
                         {round.qualifiedCandidates.map((qc) => (
-                          <Typography key={qc.id}>
-                            {qc.name} ({qc.politicalParty})
-                          </Typography>
+                          <div key={qc.id} className='tour-candidate-container'>
+                            <div className='tour-candidate detailed'>
+                              <div className='tour-candidate-name'>
+                                <Typography key={qc.id}>
+                                  {qc.name} : {qc.votes ?? 0} vote(s)
+                                </Typography>
+                              </div>
+                              <LinearProgress variant="determinate" value={(qc.votes / round.totalVotes) * 100} sx={{ width: '100%' }} />
+                              <div className='number'>
+                                {Math.round((qc.votes / round.totalVotes) * 100)} %
+                              </div>
+                            </div>
+                            <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>
+                          </div>
                         ))}
                       </Box>
-                    ) : (
+                    ) :
                       <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle1">
-                          🗳️ Votes par candidat :
+                          {isRoundsDetailsVisible[roundIndex] ? "Votes par candidats :" : "Gagnant du tour et de l'élection"}
                         </Typography>
                         <div className='tour-candidate-container'>
                           <div className='tour-candidate detailed'>
                             <div className='tour-candidate-name'>
-                              <Typography>
-                                Vote Blanc : {round.whiteVotes} vote(s)
+                              <Typography >
+                                {globalWinner === 0
+                                  ? "Vote blanc"
+                                  : globalWinnerDetails
+                                    ? `${globalWinnerDetails.firstName} ${globalWinnerDetails.lastName} (${globalWinnerDetails.politicalParty})`
+                                    : `Candidat ID ${globalWinner}`} : {round.candidateVotes.find(c => c.id === globalWinner)?.votes ?? 0} vote(s)
+                                {/* {globalWinner.name} : {globalWinner.votes ?? 0} vote(s) */}
                               </Typography>
                             </div>
-                            <LinearProgress variant="determinate" value={(round.whiteVotes / round.totalVotes) * 100} sx={{ width: '100%' }} />
+                            <LinearProgress variant="determinate" value={(round.candidateVotes.find(c => c.id === globalWinner).votes / round.totalVotes) * 100} sx={{ width: '100%' }} />
                             <div className='number'>
-                              {Math.round((round.whiteVotes / round.totalVotes) * 100)} %
+                              {Math.round((round.candidateVotes.find(c => c.id === globalWinner).votes / round.totalVotes) * 100)} %
                             </div>
                           </div>
-                          <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>
                         </div>
-                        {round.candidateVotes.map((cv, index) => (
+                        <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>
+                      </Box>
+                    }
+
+                    {isRoundsDetailsVisible[roundIndex] && <Box sx={{ mt: 2 }}>
+                      {round.candidateVotes.map((cv, index) => {
+                        if (round.qualifiedCandidates && round.qualifiedCandidates.length > 0 && round.qualifiedCandidates.some(c => c.id === cv.id)) return null;
+                        if (roundIndex === roundDetails.length - 1 && cv.id === globalWinner) return null; // Ne pas afficher le gagnant du tour si c'est le dernier round
+                        return (
                           <div key={cv.id} className='tour-candidate-container'>
                             <div className='tour-candidate detailed'>
                               <div className='tour-candidate-name'>
@@ -206,15 +261,29 @@ function ElectionResult({ election, contract, normalizedAccount, owner, onBack }
                                 {Math.round((cv.votes / round.totalVotes) * 100)} %
                               </div>
                             </div>
-                            {index < (round.candidateVotes.length - 1) && <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>}
+                            <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>
                           </div>
-                        ))}
-                      </Box>
-                    )}
-                    {/* <IconButton>
-                      {isRoundsDetailsVisible[index] ? <KeyboardArrowDownIcon onClick={() => handleArrowClick(index)} /> :
-                        <KeyboardArrowUpIcon onClick={() => handleArrowClick(index)} />}
-                    </IconButton> */}
+                        )
+                      })}
+                      <div className='tour-candidate-container'>
+                        <div className='tour-candidate detailed'>
+                          <div className='tour-candidate-name'>
+                            <Typography>
+                              Vote Blanc : {round.whiteVotes} vote(s)
+                            </Typography>
+                          </div>
+                          <LinearProgress variant="determinate" value={(round.whiteVotes / round.totalVotes) * 100} sx={{ width: '100%' }} />
+                          <div className='number'>
+                            {Math.round((round.whiteVotes / round.totalVotes) * 100)} %
+                          </div>
+                        </div>
+                      </div>
+                    </Box>}
+
+                    <IconButton>
+                      {!isRoundsDetailsVisible[roundIndex] ? <KeyboardArrowDown color="pimary" onClick={() => handleArrowClick(roundIndex)} /> :
+                        <KeyboardArrowUp color="pimary" onClick={() => handleArrowClick(roundIndex)} />}
+                    </IconButton>
 
                   </CardContent>
                 </Card>
