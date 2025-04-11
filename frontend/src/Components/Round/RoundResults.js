@@ -14,12 +14,48 @@ function RoundResults({ results, candidates }) {
       <Typography variant="h6" sx={{ mb: 2 }}>
         📊 Statistiques du tour
       </Typography>
-      <ul>
-        <li>👥 Nombre d’inscrits : {results.totalRegistered}</li>
-        <li>⚪ Votes blancs : {results.whiteVotes}</li>
-        <li>❌ Absents : {absents}</li>
-        <li>✅ Total des votes : {results.totalVotes}</li>
-        <li>📈 Votes exprimés (hors blancs) : {exprimés}</li>
+      <ul className="list-stats">
+        <li>
+          <div>
+            👥 Nombre d’inscrits :
+          </div>
+          <div>
+            {results.totalRegistered}
+          </div>
+
+        </li>
+        <li>
+          <div>
+            ⚪ Votes blancs :
+          </div>
+          <div>
+            {results.whiteVotes}
+          </div>
+        </li>
+        <li>
+          <div>
+            ❌ Absents :
+          </div>
+          <div>
+            {absents}
+          </div>
+        </li>
+        <li>
+          <div>
+            ✅ Total des votes :
+          </div>
+          <div>
+            {results.totalVotes}
+          </div>
+        </li>
+        <li>
+          <div>
+            📈 Votes exprimés (hors blancs) :
+          </div>
+          <div>
+            {exprimés}
+          </div>
+        </li>
       </ul>
 
       <Typography variant="subtitle1" sx={{ mt: 3 }}>

@@ -433,3 +433,68 @@
     }
   }
 }
+
+.tour-candidate-container {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-bottom: .5rem;
+}
+
+.tour-candidate {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: .5rem;
+  margin: .5rem;
+  gap: 1rem;
+  cursor: pointer;
+  color: white;
+  background-color: #3b3b71;
+  border: 2px solid #45454b;
+  border-radius: 10px;
+
+  &.detailed {
+    padding: .5rem;
+    flex-direction: row;
+    white-space: nowrap;
+    align-items: center;
+
+    .tour-candidate-name {
+      width: 15rem;
+      white-space: wrap;
+      text-align: left;
+      word-break: work-break;
+      overflow-wrap: break-word;
+    }
+
+    .number {
+      width: 3rem;
+      text-align: center;
+    }
+  }
+
+  .tour-candidate-name {
+    width: fit-content;
+  }
+
+  .tour-candidate-votes {
+    /* width: fit-content; */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+
+    .label,
+    .number {
+      /* width: fit-content; */
+      white-space: nowrap;
+      /* max-width: 3rem; */
+    }
+
+    .number {
+      width: 3rem;
+      text-align: center;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, Card, CardContent, LinearProgress, Divider } from "@mui/material";
+import { Box, Typography, Button, Card, CardContent, LinearProgress, Divider, IconButton } from "@mui/material";
 import dayjs from "dayjs";
+import { KeyboardArrowUpIcon, KeyboardArrowDownIcon } from '@mui/icons-material';
 
 function ElectionResult({ election, contract, normalizedAccount, owner, onBack }) {
   const [globalWinner, setGlobalWinner] = useState(null);
@@ -8,6 +9,12 @@ function ElectionResult({ election, contract, normalizedAccount, owner, onBack }
   const [roundDetails, setRoundDetails] = useState([]);
   const [isRoundsDetailsVisible, setIsRoundsDetailsVisible] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleArrowClick = (index) => {
+    const newVisibility = [...isRoundsDetailsVisible];
+    newVisibility[index] = !newVisibility[index];
+    setIsRoundsDetailsVisible(newVisibility);
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -136,7 +143,7 @@ function ElectionResult({ election, contract, normalizedAccount, owner, onBack }
           <Box sx={{ mt: 4 }}>
             <Typography variant="h5">Résultats par tour</Typography>
             {roundDetails.length > 0 ? (
-              roundDetails.map((round) => (
+              roundDetails.map((round, index) => (
                 <Card key={round.roundNumber} sx={{ mt: 2 }}>
                   <CardContent>
                     <Typography variant="h6">Tour #{round.roundNumber}</Typography>
@@ -155,44 +162,8 @@ function ElectionResult({ election, contract, normalizedAccount, owner, onBack }
                     <Typography>
                       📈 Votes exprimés (hors blancs) : {round.votesExpressed}
                     </Typography>
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="subtitle1">
-                        🗳️ Votes par candidat :
-                      </Typography>
-                      <div className='tour-candidate detailed'>
-                        <div className='tour-candidate-container'>
-                          <div className='tour-candidate-name'>
-                            <Typography>
-                              Vote Blanc : {round.whiteVotes} vote(s)
-                            </Typography>
-                          </div>
-                          <LinearProgress variant="determinate" value={(round.whiteVotes / round.totalVotes) * 100} sx={{ width: '100%' }} />
-                          <div className='number'>
-                            {Math.round((round.whiteVotes / round.totalVotes) * 100)} %
-                          </div>
-                        </div>
-                        <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>
-                      </div>
-                      {round.candidateVotes.map((cv, index) => (
-                        <div key={cv.id} className='tour-candidate-container'>
-                          <div className='tour-candidate detailed'>
-                            <div className='tour-candidate-name'>
-                              <Typography key={cv.id}>
-                                {cv.name} : {cv.votes ?? 0} vote(s)
-                              </Typography>
-                            </div>
-                            <LinearProgress variant="determinate" value={(cv.votes / round.totalVotes) * 100} sx={{ width: '100%' }} />
-                            <div className='number'>
-                              {Math.round((cv.votes / round.totalVotes) * 100)} %
-                            </div>
-                          </div>
-                          {index < (round.candidateVotes.length - 1) && <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>}
-                        </div>
-                      ))}
-                    </Box>
-
                     {/* Si ce round n'est pas le dernier, afficher les candidats qualifiés pour le tour suivant */}
-                    {round.qualifiedCandidates && round.qualifiedCandidates.length > 0 && (
+                    {round.qualifiedCandidates && round.qualifiedCandidates.length > 0 && !isRoundsDetailsVisible[index] ? (
                       <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle1">
                           🔜 Candidats qualifiés pour le tour suivant :
@@ -203,7 +174,48 @@ function ElectionResult({ election, contract, normalizedAccount, owner, onBack }
                           </Typography>
                         ))}
                       </Box>
+                    ) : (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle1">
+                          🗳️ Votes par candidat :
+                        </Typography>
+                        <div className='tour-candidate-container'>
+                          <div className='tour-candidate detailed'>
+                            <div className='tour-candidate-name'>
+                              <Typography>
+                                Vote Blanc : {round.whiteVotes} vote(s)
+                              </Typography>
+                            </div>
+                            <LinearProgress variant="determinate" value={(round.whiteVotes / round.totalVotes) * 100} sx={{ width: '100%' }} />
+                            <div className='number'>
+                              {Math.round((round.whiteVotes / round.totalVotes) * 100)} %
+                            </div>
+                          </div>
+                          <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>
+                        </div>
+                        {round.candidateVotes.map((cv, index) => (
+                          <div key={cv.id} className='tour-candidate-container'>
+                            <div className='tour-candidate detailed'>
+                              <div className='tour-candidate-name'>
+                                <Typography key={cv.id}>
+                                  {cv.name} : {cv.votes ?? 0} vote(s)
+                                </Typography>
+                              </div>
+                              <LinearProgress variant="determinate" value={(cv.votes / round.totalVotes) * 100} sx={{ width: '100%' }} />
+                              <div className='number'>
+                                {Math.round((cv.votes / round.totalVotes) * 100)} %
+                              </div>
+                            </div>
+                            {index < (round.candidateVotes.length - 1) && <Divider sx={{ borderColor: '#7a7a7a' }}></Divider>}
+                          </div>
+                        ))}
+                      </Box>
                     )}
+                    {/* <IconButton>
+                      {isRoundsDetailsVisible[index] ? <KeyboardArrowDownIcon onClick={() => handleArrowClick(index)} /> :
+                        <KeyboardArrowUpIcon onClick={() => handleArrowClick(index)} />}
+                    </IconButton> */}
+
                   </CardContent>
                 </Card>
               ))
