@@ -8,6 +8,8 @@ import {
   ListItemText,
   TextField,
   Button,
+  Card,
+  CardContent,
 } from "@mui/material";
 
 function CandidateList({ contract, normalizedAccount, isAdmin }) {
@@ -66,10 +68,16 @@ function CandidateList({ contract, normalizedAccount, isAdmin }) {
         ) : (
           candidates.map((c) => (
             <ListItem key={c.id}>
-              <ListItemText
-                primary={`${c.firstName} ${c.lastName}`}
-                secondary={`Parti politique : ${c.politicalParty}`}
-              />
+              <Card sx={{ flexGrow: 1 }}>
+                <CardContent sx={{ padding: '.5rem', paddingBottom: '.7rem !important', paddingInline: '.7rem' }} >
+                  <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
+                    {c.firstName + ' '} {c.lastName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {c.politicalParty}
+                  </Typography>
+                </CardContent>
+              </Card>
             </ListItem>
           ))
         )}

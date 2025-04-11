@@ -43,7 +43,7 @@ function App() {
           setAccount(accounts[0]);
 
           // Adresse de votre contrat
-          const electionContractAddress = "0xFa9c6Cba3fa6cE431173bF422c84a653C407e525";
+          const electionContractAddress = "0x3B621E9698677eeE8C18e20406DD645E4849a4EC";
 
           // Instanciation des contrats lecture / écriture
           const electionRead = new Contract(

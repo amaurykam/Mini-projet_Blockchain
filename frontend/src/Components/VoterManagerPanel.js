@@ -7,6 +7,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Divider,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
@@ -88,7 +89,10 @@ export default function VoterManagerPanel({ contract, isAdmin }) {
             <Typography>Aucun votant enregistré.</Typography>
           ) : (
             voters.map((voter, index) => (
-              <Typography key={index}>{voter}</Typography>
+              <>
+                <Typography key={index}>{voter}</Typography>
+                {index < voters.length - 1 && <Divider sx={{ my: 1 }}></Divider>}
+              </>
             ))
           )}
         </AccordionDetails>
